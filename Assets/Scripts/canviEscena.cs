@@ -11,7 +11,7 @@ public class canviEscena : MonoBehaviour
     }
     public void anarGarage()
     {
-        SceneManager.LoadScene("Garage");
+        SceneManager.LoadScene("Garaje");
     }
     
     
