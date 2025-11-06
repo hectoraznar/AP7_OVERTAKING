@@ -365,8 +365,9 @@ GameObject:
   - component: {fileID: 486396547}
   - component: {fileID: 486396546}
   - component: {fileID: 486396545}
+  - component: {fileID: 486396549}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Coche
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -464,6 +465,32 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &486396549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 486396544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77d585e4ef5a35c458fd951259141be0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::movimientoCoche
+  velocidadBase: 20
+  aceleracion: 30
+  frenado: 10
+  velocidadActual: 0
+  velocidadGiro: 5
+  aceleracionSuave: 2
+  textoVelocidad: {fileID: 740865951}
+  textoTemporizador: {fileID: 31703918}
+  textoPuntos: {fileID: 955910445}
+  puntosPorSegundo: 5
+  intervaloPuntos: 1
+  giroMaximo: 5
+  giroMinimo: 1
+  velocidadReferencia: 25
 --- !u!1 &600195974
 GameObject:
   m_ObjectHideFlags: 0
@@ -475,6 +502,7 @@ GameObject:
   - component: {fileID: 600195977}
   - component: {fileID: 600195976}
   - component: {fileID: 600195975}
+  - component: {fileID: 600195978}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -556,6 +584,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &600195978
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 600195974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e821e475e048a9845bcb8855302cb38f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CamaraSeguimiento
+  distanciaAtras: 5
+  altura: 2
+  suavizado: 2
 --- !u!1 &724444255
 GameObject:
   m_ObjectHideFlags: 0
@@ -643,7 +686,7 @@ GameObject:
   - component: {fileID: 740865952}
   - component: {fileID: 740865951}
   m_Layer: 5
-  m_Name: Velocidad
+  m_Name: textoVelocidad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -666,7 +709,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 26, y: -171}
+  m_AnchoredPosition: {x: 26, y: -182}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &740865951
@@ -754,7 +797,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -26.417023, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -855,7 +898,7 @@ GameObject:
   - component: {fileID: 955910446}
   - component: {fileID: 955910445}
   m_Layer: 5
-  m_Name: Points
+  m_Name: Texto Puntos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -970,7 +1013,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -23.268066, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
