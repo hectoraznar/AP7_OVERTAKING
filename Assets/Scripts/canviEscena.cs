@@ -13,6 +13,10 @@ public class canviEscena : MonoBehaviour
     {
         SceneManager.LoadScene("Garaje");
     }
+    public void anarMenu()
+    {
+        SceneManager.LoadScene("Inicio");
+    }
     
     
 
