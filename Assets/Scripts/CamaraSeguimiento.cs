@@ -2,97 +2,71 @@ using UnityEngine;
 
 public class CamaraSeguimiento : MonoBehaviour
 {
-    private Transform coche;
-    public float distanciaAtras = 5f;
-    public float altura = 2f;
-    public float suavizado = 2f;
-    public float suavizadoRotacion = 2f;
+    public Transform coche;
+    public Vector3 offset = new Vector3(-1f, 4.3f, -15f); // Posición fija relativa al coche
+    public float suavizado = 3f;
 
-    private Vector3 velocidadCamara = Vector3.zero;
-    private float velocidadRotacion = 0f;
+    private Vector3 velocidad = Vector3.zero;
 
     void Start()
     {
-        // Buscar el objeto llamado "Coche"
-        coche = GameObject.Find("Coche").transform;
-        
+        // Buscar automáticamente el coche si no está asignado
         if (coche == null)
         {
-            Debug.LogError("No se encontró el objeto 'Coche' en la escena!");
+            coche = GameObject.Find("Coche").transform;
+            if (coche == null)
+            {
+                Debug.LogError("No se encontró el objeto 'Coche' en la escena!");
+            }
         }
+        
+        // Posicionar la cámara correctamente al inicio
+        PosicionarCamara();
     }
 
     void LateUpdate()
     {
         if (coche != null)
         {
-            SeguirCocheConRotacion();
+            SeguirCoche();
         }
     }
 
-    void SeguirCocheConRotacion()
+    void SeguirCoche()
     {
-        // Calcular posición objetivo detrás del coche
-        Vector3 direccionAtras = -coche.forward * distanciaAtras;
-        Vector3 posicionObjetivo = coche.position + direccionAtras + Vector3.up * altura;
+        // Calcular la posición objetivo manteniendo el offset relativo al coche
+        Vector3 posicionObjetivo = coche.position + offset;
         
-        // Suavizado de posición
-        transform.position = Vector3.SmoothDamp(
+        // Aplicar suavizado solo al movimiento horizontal (X y Z)
+        Vector3 posicionSuavizada = Vector3.SmoothDamp(
             transform.position, 
             posicionObjetivo, 
-            ref velocidadCamara, 
+            ref velocidad, 
             suavizado * Time.deltaTime
         );
 
-        // Calcular rotación objetivo (mirar hacia el coche con un poco de adelanto)
-        Vector3 direccionMirar = coche.position - transform.position;
-        
-        // Añadir un poco de adelanto en la dirección que mira el coche
-        direccionMirar += coche.forward * 2f;
-        
-        Quaternion rotacionObjetivo = Quaternion.LookRotation(direccionMirar, Vector3.up);
+        // Mantener la altura fija (Y siempre en 4.3)
+        posicionSuavizada.y = offset.y;
 
-        // Suavizado de rotación
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation, 
-            rotacionObjetivo, 
-            suavizadoRotacion * Time.deltaTime
-        );
+        transform.position = posicionSuavizada;
+
+        // Mantener la rotación fija (como en el Inspector)
+        transform.rotation = Quaternion.Euler(0, 0, 0);
     }
 
-    // Método alternativo más simple (elige uno)
-    void SeguirCocheSimple()
-    {
-        // Posición: siempre detrás del coche en su dirección
-        Vector3 posicionObjetivo = coche.position - coche.forward * distanciaAtras + Vector3.up * altura;
-        
-        transform.position = Vector3.SmoothDamp(
-            transform.position, 
-            posicionObjetivo, 
-            ref velocidadCamara, 
-            suavizado * Time.deltaTime
-        );
-
-        // Rotación: siempre mirar al coche
-        transform.LookAt(coche.position + coche.forward * 2f); // Mirar un poco adelante del coche
-    }
-
-    // Método para ajustar dinámicamente los parámetros
-    public void ConfigurarSeguimiento(float nuevaDistancia, float nuevaAltura, float nuevoSuavizado)
-    {
-        distanciaAtras = nuevaDistancia;
-        altura = nuevaAltura;
-        suavizado = nuevoSuavizado;
-    }
-
-    // Método para resetear la cámara
-    public void ResetearCamara()
+    void PosicionarCamara()
     {
         if (coche != null)
         {
-            Vector3 posicionInicial = coche.position - coche.forward * distanciaAtras + Vector3.up * altura;
-            transform.position = posicionInicial;
-            transform.LookAt(coche.position + coche.forward * 2f);
+            // Posicionar inmediatamente en la posición correcta
+            transform.position = coche.position + offset;
+            transform.rotation = Quaternion.Euler(0, 0, 0);
         }
+    }
+
+    // Resetear a la posición inicial
+    public void ResetearCamara()
+    {
+        PosicionarCamara();
     }
 }

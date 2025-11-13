@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - trigger
+  - obstaculo
   layers:
   - Default
   - TransparentFX

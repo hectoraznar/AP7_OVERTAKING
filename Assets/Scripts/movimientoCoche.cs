@@ -4,6 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using System.Linq;
 
+[RequireComponent(typeof(CharacterController))]
 public class movimientoCoche : MonoBehaviour
 {
     [Header("Referencias")]
@@ -11,10 +12,10 @@ public class movimientoCoche : MonoBehaviour
     public GameObject carreteraOriginal;
     public GameObject triggerObject;
 
-    [Header("Movimiento - Libre como Nave")]
-    public float velocidadLateral = 40f;       // Movimiento lateral
-    public float velocidadAdelante = 60f;      // Adelante
-    public float velocidadAtras = 30f;         // Atrás
+    [Header("Movimiento - Con CharacterController")]
+    public float velocidadLateral = 15f;
+    public float velocidadAdelante = 25f;
+    public float velocidadAtras = 12f;
 
     [Header("UI")]
     public TextMeshProUGUI textoVelocidad;
@@ -33,6 +34,7 @@ public class movimientoCoche : MonoBehaviour
     private InputAction acelerarAction;
     private InputAction frenarAction;
 
+    private CharacterController controller;
     private float velocidadVisual;
     private float tiempoTranscurrido;
     private int puntosTotales;
@@ -45,6 +47,7 @@ public class movimientoCoche : MonoBehaviour
     void Awake()
     {
         ConfigurarInput();
+        controller = GetComponent<CharacterController>();
         posicionInicialCoche = transform.position;
     }
 
@@ -90,40 +93,41 @@ public class movimientoCoche : MonoBehaviour
 
     void Update()
     {
-        MovimientoLibre();
+        MovimientoConColisiones();
         ActualizarTemporizador();
         ActualizarPuntos();
         ActualizarVelocimetro();
     }
 
-    void MovimientoLibre()
+    void MovimientoConColisiones()
     {
         Vector2 input = movimientoAction.ReadValue<Vector2>();
         float acel = acelerarAction.ReadValue<float>();
         float fren = frenarAction.ReadValue<float>();
 
-        Vector3 desplazamiento = Vector3.zero;
+        Vector3 movimiento = Vector3.zero;
 
-        // MOVIMIENTO ADELANTE/ATRÁS (siempre disponible)
-        if (acel > 0.1f) // W/UpArrow - Adelante
+        // MOVIMIENTO ADELANTE/ATRÁS
+        if (acel > 0.1f)
         {
-            desplazamiento.z = velocidadAdelante * Time.deltaTime;
+            movimiento.z = velocidadAdelante * Time.deltaTime;
         }
-        else if (fren > 0.1f) // S/DownArrow - Atrás
+        else if (fren > 0.1f)
         {
-            desplazamiento.z = -velocidadAtras * Time.deltaTime;
+            movimiento.z = -velocidadAtras * Time.deltaTime;
         }
 
         // MOVIMIENTO LATERAL SOLO SI VA HACIA ADELANTE
         if (Mathf.Abs(input.x) > 0.1f && acel > 0.1f)
         {
-            desplazamiento.x = input.x * velocidadLateral * Time.deltaTime;
+            movimiento.x = input.x * velocidadLateral * Time.deltaTime;
         }
 
-        // Aplicar movimiento solo si hay desplazamiento
-        if (desplazamiento != Vector3.zero)
+        // APLICAR MOVIMIENTO CON DETECCIÓN DE COLISIONES
+        if (movimiento != Vector3.zero)
         {
-            transform.Translate(desplazamiento, Space.World);
+            // CharacterController.Move() detecta colisiones automáticamente
+            controller.Move(movimiento);
         }
 
         // Mantener altura constante
@@ -133,7 +137,7 @@ public class movimientoCoche : MonoBehaviour
     }
 
     // --------------------------
-    // Mapa Infinito
+    // Mapa Infinito (igual)
     // --------------------------
     void GenerarNuevoMapa()
     {
@@ -208,7 +212,6 @@ public class movimientoCoche : MonoBehaviour
     {
         if (textoVelocidad == null) return;
 
-        // Calcular velocidad basada en input actual
         float acel = acelerarAction.ReadValue<float>();
         float fren = frenarAction.ReadValue<float>();
 
@@ -229,8 +232,8 @@ public class movimientoCoche : MonoBehaviour
         else
         {
             textoVelocidad.text = kmh + " km/h";
-            textoVelocidad.color = kmh < 100 ? Color.green : 
-                                 kmh < 180 ? Color.yellow : 
+            textoVelocidad.color = kmh < 80 ? Color.green : 
+                                 kmh < 160 ? Color.yellow : 
                                  Color.red;
         }
     }
