@@ -1,285 +1,284 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using System.Collections.Generic;
+using System.Linq;
 
 public class movimientoCoche : MonoBehaviour
 {
-    [Header("Configuración del coche - MÁS VELOCIDAD PERO SUAVE")]
-    public float velocidadBase = 30f;
-    public float aceleracion = 50f;
-    public float frenado = 12f;
-    public float velocidadActual = 0f;
-    public float velocidadGiro = 7f;
-    public float aceleracionSuave = 1.5f;
+    [Header("Referencias")]
+    public Camera camara;
+    public GameObject carreteraOriginal;
+    public GameObject triggerObject;
 
-    [Header("UI - Velocímetro")]
+    [Header("Movimiento - Libre como Nave")]
+    public float velocidadLateral = 40f;       // Movimiento lateral
+    public float velocidadAdelante = 60f;      // Adelante
+    public float velocidadAtras = 30f;         // Atrás
+
+    [Header("UI")]
     public TextMeshProUGUI textoVelocidad;
-
-    [Header("Temporizador")]
     public TextMeshProUGUI textoTemporizador;
-    private float tiempoTranscurrido = 0f;
-    private bool temporizadorActivo = true;
-
-    [Header("Sistema de Puntos")]
     public TextMeshProUGUI textoPuntos;
-    private int puntosTotales = 0;
-    private float tiempoUltimoPunto = 0f;
+
+    [Header("Puntos y tiempo")]
     public int puntosPorSegundo = 5;
-    public float intervaloPuntos = 1f; // Cada 1 segundo
+    public float intervaloPuntos = 1f;
 
-    [Header("Giro Realista")]
-    public float giroMaximo = 6f;
-    public float giroMinimo = 2f;
-    public float velocidadReferencia = 40f;
+    [Header("Mapa Infinito")]
+    public float cooldownGeneracion = 0.6f;
+    public int maxSegmentosActivos = 6;
 
-    [Header("Límites de carretera")]
-    private float limiteIzquierdo;
-    private float limiteDerecho;
-    private Camera camara;
-
-    // Variables del nuevo Input System
     private InputAction movimientoAction;
     private InputAction acelerarAction;
     private InputAction frenarAction;
 
+    private float velocidadVisual;
+    private float tiempoTranscurrido;
+    private int puntosTotales;
+    private float tiempoUltimoPunto;
+
+    private Queue<GameObject> segmentosActivos = new Queue<GameObject>();
+    private bool puedeRegenerar = true;
+    private Vector3 posicionInicialCoche;
+
+    void Awake()
+    {
+        ConfigurarInput();
+        posicionInicialCoche = transform.position;
+    }
+
     void Start()
     {
-        camara = Camera.main;
-        velocidadActual = 0f;
+        if (camara == null) camara = Camera.main;
 
-        // Configurar límites de la cámara
-        float distanciaZ = Mathf.Abs(transform.position.z - camara.transform.position.z);
-        Vector3 limiteInferior = camara.ViewportToWorldPoint(new Vector3(0, 0, distanciaZ));
-        Vector3 limiteSuperior = camara.ViewportToWorldPoint(new Vector3(1, 1, distanciaZ));
+        if (carreteraOriginal == null)
+            carreteraOriginal = GameObject.Find("carretera_original");
 
-        limiteIzquierdo = limiteInferior.x + 1f;
-        limiteDerecho = limiteSuperior.x - 1f;
+        if (triggerObject == null)
+        {
+            GameObject t = GameObject.Find("trigger");
+            if (t != null) triggerObject = t;
+            else
+            {
+                var byTag = GameObject.FindGameObjectWithTag("trigger");
+                if (byTag != null) triggerObject = byTag;
+            }
+        }
 
-        // Configurar el nuevo Input System
-        ConfigurarInput();
+        if (textoVelocidad == null)
+        {
+            var tv = GameObject.Find("textoVelocidad") ?? GameObject.Find("TextoVelocidad");
+            if (tv != null) textoVelocidad = tv.GetComponent<TextMeshProUGUI>();
+        }
+
+        if (textoTemporizador == null)
+        {
+            var tt = GameObject.Find("Time") ?? GameObject.Find("textoTemporizador");
+            if (tt != null) textoTemporizador = tt.GetComponent<TextMeshProUGUI>();
+        }
+
+        if (textoPuntos == null)
+        {
+            var tp = GameObject.Find("Texto Puntos") ?? GameObject.Find("TextoPuntos");
+            if (tp != null) textoPuntos = tp.GetComponent<TextMeshProUGUI>();
+        }
+        
+        if (carreteraOriginal != null)
+            segmentosActivos.Enqueue(carreteraOriginal);
     }
 
     void Update()
     {
+        MovimientoLibre();
         ActualizarTemporizador();
-        ActualizarSistemaPuntos(); // ← NUEVO: Sistema de puntos
+        ActualizarPuntos();
         ActualizarVelocimetro();
-        Debug.Log("Velocidad: " + velocidadActual.ToString("F1"));
-        MoverCoche();
-        LimitarPosicion();
+    }
+
+    void MovimientoLibre()
+    {
+        Vector2 input = movimientoAction.ReadValue<Vector2>();
+        float acel = acelerarAction.ReadValue<float>();
+        float fren = frenarAction.ReadValue<float>();
+
+        Vector3 desplazamiento = Vector3.zero;
+
+        // MOVIMIENTO ADELANTE/ATRÁS (siempre disponible)
+        if (acel > 0.1f) // W/UpArrow - Adelante
+        {
+            desplazamiento.z = velocidadAdelante * Time.deltaTime;
+        }
+        else if (fren > 0.1f) // S/DownArrow - Atrás
+        {
+            desplazamiento.z = -velocidadAtras * Time.deltaTime;
+        }
+
+        // MOVIMIENTO LATERAL SOLO SI VA HACIA ADELANTE
+        if (Mathf.Abs(input.x) > 0.1f && acel > 0.1f)
+        {
+            desplazamiento.x = input.x * velocidadLateral * Time.deltaTime;
+        }
+
+        // Aplicar movimiento solo si hay desplazamiento
+        if (desplazamiento != Vector3.zero)
+        {
+            transform.Translate(desplazamiento, Space.World);
+        }
+
+        // Mantener altura constante
+        Vector3 pos = transform.position;
+        pos.y = posicionInicialCoche.y;
+        transform.position = pos;
+    }
+
+    // --------------------------
+    // Mapa Infinito
+    // --------------------------
+    void GenerarNuevoMapa()
+    {
+        if (!puedeRegenerar || carreteraOriginal == null) return;
+
+        GameObject ultimo = segmentosActivos.Last();
+
+        Bounds bBase;
+        TryGetBounds(carreteraOriginal, out bBase);
+        float largo = bBase.size.z;
+
+        Vector3 posNuevo = new Vector3(
+            ultimo.transform.position.x,
+            ultimo.transform.position.y,
+            ultimo.transform.position.z + largo
+        );
+
+        GameObject nuevo = Instantiate(carreteraOriginal, posNuevo, ultimo.transform.rotation);
+        nuevo.name = "carretera_copia_" + System.DateTime.Now.Ticks;
+        segmentosActivos.Enqueue(nuevo);
+
+        if (triggerObject != null)
+        {
+            Bounds bNuevo;
+            TryGetBounds(nuevo, out bNuevo);
+            Vector3 newTriggerPos = triggerObject.transform.position;
+            newTriggerPos.z = nuevo.transform.position.z + (bNuevo.size.z / 2f);
+            triggerObject.transform.position = newTriggerPos;
+        }
+
+        if (segmentosActivos.Count > maxSegmentosActivos)
+        {
+            GameObject viejo = segmentosActivos.Dequeue();
+            if (viejo != carreteraOriginal)
+                Destroy(viejo);
+        }
+
+        puedeRegenerar = false;
+        Invoke(nameof(ReactivarGeneracion), cooldownGeneracion);
+    }
+
+    bool TryGetBounds(GameObject go, out Bounds bounds)
+    {
+        var rends = go.GetComponentsInChildren<Renderer>();
+        if (rends == null || rends.Length == 0)
+        {
+            bounds = new Bounds(go.transform.position, Vector3.zero);
+            return false;
+        }
+
+        bounds = rends[0].bounds;
+        for (int i = 1; i < rends.Length; i++)
+            bounds.Encapsulate(rends[i].bounds);
+
+        return true;
+    }
+
+    void ReactivarGeneracion() => puedeRegenerar = true;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if ((triggerObject != null && other.gameObject == triggerObject) || other.CompareTag("trigger"))
+        {
+            GenerarNuevoMapa();
+        }
+    }
+
+    // --------------------------
+    // UI
+    // --------------------------
+    void ActualizarVelocimetro()
+    {
+        if (textoVelocidad == null) return;
+
+        // Calcular velocidad basada en input actual
+        float acel = acelerarAction.ReadValue<float>();
+        float fren = frenarAction.ReadValue<float>();
+
+        float velocidadActual = 0f;
+        if (acel > 0.1f) velocidadActual = velocidadAdelante;
+        else if (fren > 0.1f) velocidadActual = -velocidadAtras;
+
+        float velocidadKmh = Mathf.Abs(velocidadActual) * 3.6f;
+        velocidadVisual = Mathf.Lerp(velocidadVisual, velocidadKmh, Time.deltaTime * 8f);
+
+        int kmh = Mathf.RoundToInt(velocidadVisual);
+        
+        if (velocidadActual < 0)
+        {
+            textoVelocidad.text = "R " + kmh + " km/h";
+            textoVelocidad.color = Color.cyan;
+        }
+        else
+        {
+            textoVelocidad.text = kmh + " km/h";
+            textoVelocidad.color = kmh < 100 ? Color.green : 
+                                 kmh < 180 ? Color.yellow : 
+                                 Color.red;
+        }
     }
 
     void ActualizarTemporizador()
     {
-        if (temporizadorActivo && textoTemporizador != null)
+        if (textoTemporizador == null) return;
+        tiempoTranscurrido += Time.deltaTime;
+        int min = Mathf.FloorToInt(tiempoTranscurrido / 60f);
+        int seg = Mathf.FloorToInt(tiempoTranscurrido % 60f);
+        textoTemporizador.text = $"{min:00}:{seg:00}";
+    }
+
+    void ActualizarPuntos()
+    {
+        if (textoPuntos == null) return;
+        if (Time.time - tiempoUltimoPunto >= intervaloPuntos)
         {
-            tiempoTranscurrido += Time.deltaTime;
-            
-            int minutos = Mathf.FloorToInt(tiempoTranscurrido / 60f);
-            int segundos = Mathf.FloorToInt(tiempoTranscurrido % 60f);
-            
-            textoTemporizador.text = string.Format("{0:00}:{1:00}", minutos, segundos);
+            puntosTotales += puntosPorSegundo;
+            tiempoUltimoPunto = Time.time;
+            textoPuntos.text = "Puntos: " + puntosTotales;
         }
     }
 
-    void ActualizarSistemaPuntos()
-    {
-        if (temporizadorActivo && textoPuntos != null)
-        {
-            // Sumar puntos cada X segundos
-            if (Time.time - tiempoUltimoPunto >= intervaloPuntos)
-            {
-                puntosTotales += puntosPorSegundo;
-                tiempoUltimoPunto = Time.time;
-                
-                // Actualizar texto de puntos
-                textoPuntos.text = "Puntos: " + puntosTotales;
-                
-                Debug.Log("+ " + puntosPorSegundo + " puntos! Total: " + puntosTotales);
-            }
-        }
-    }
-
-    void ActualizarVelocimetro()
-    {
-        if (textoVelocidad != null)
-        {
-            // CONVERSIÓN: 30 unidades = 250 km/h
-            float velocidadNormalizada = Mathf.Abs(velocidadActual) / 30f;
-            int velocidadKMH = Mathf.RoundToInt(velocidadNormalizada * 250f);
-            velocidadKMH = Mathf.Min(velocidadKMH, 250);
-            
-            textoVelocidad.text = velocidadKMH + " km/h";
-            
-            if (velocidadKMH < 80)
-                textoVelocidad.color = Color.green;
-            else if (velocidadKMH < 160)
-                textoVelocidad.color = Color.yellow;
-            else
-                textoVelocidad.color = Color.red;
-        }
-    }
-
-    // MÉTODOS PARA CONTROLAR PUNTOS DESDE OTROS SCRIPTS
-    public void SumarPuntos(int cantidad)
-    {
-        puntosTotales += cantidad;
-        if (textoPuntos != null)
-            textoPuntos.text = "Puntos: " + puntosTotales;
-    }
-
-    public void RestarPuntos(int cantidad)
-    {
-        puntosTotales = Mathf.Max(0, puntosTotales - cantidad);
-        if (textoPuntos != null)
-            textoPuntos.text = "Puntos: " + puntosTotales;
-    }
-
-    public void ReiniciarPuntos()
-    {
-        puntosTotales = 0;
-        tiempoUltimoPunto = Time.time;
-        if (textoPuntos != null)
-            textoPuntos.text = "Puntos: " + puntosTotales;
-    }
-
-    public int ObtenerPuntos()
-    {
-        return puntosTotales;
-    }
-
-    // El resto de tu código se mantiene igual...
     void ConfigurarInput()
     {
-        // Crear acciones de input manualmente
         movimientoAction = new InputAction("Movimiento", InputActionType.Value);
         movimientoAction.AddCompositeBinding("2DVector(mode=1)")
-            .With("Up", "<Keyboard>/upArrow")
-            .With("Down", "<Keyboard>/downArrow")
-            .With("Left", "<Keyboard>/leftArrow")
-            .With("Right", "<Keyboard>/rightArrow")
             .With("Up", "<Keyboard>/w")
             .With("Down", "<Keyboard>/s")
             .With("Left", "<Keyboard>/a")
-            .With("Right", "<Keyboard>/d");
+            .With("Right", "<Keyboard>/d")
+            .With("Up", "<Keyboard>/upArrow")
+            .With("Down", "<Keyboard>/downArrow")
+            .With("Left", "<Keyboard>/leftArrow")
+            .With("Right", "<Keyboard>/rightArrow");
 
         acelerarAction = new InputAction("Acelerar", InputActionType.Button);
-        acelerarAction.AddBinding("<Keyboard>/upArrow");
         acelerarAction.AddBinding("<Keyboard>/w");
+        acelerarAction.AddBinding("<Keyboard>/upArrow");
 
         frenarAction = new InputAction("Frenar", InputActionType.Button);
-        frenarAction.AddBinding("<Keyboard>/downArrow");
         frenarAction.AddBinding("<Keyboard>/s");
+        frenarAction.AddBinding("<Keyboard>/downArrow");
 
-        // Activar las acciones
         movimientoAction.Enable();
         acelerarAction.Enable();
         frenarAction.Enable();
-    }
-
-    void MoverCoche()
-    {
-        // Giro lateral con nuevo Input System
-        Vector2 inputVector = movimientoAction.ReadValue<Vector2>();
-        float direccionHorizontal = inputVector.x;
-
-        // Control de velocidad
-        ControlarVelocidad(inputVector);
-
-        // SOLO girar si el coche se está moviendo
-        if (Mathf.Abs(velocidadActual) > 0.1f)
-        {
-            // Calcular giro según la velocidad
-            float giroEfectivo = CalcularGiroEfectivo();
-            float movimientoX = direccionHorizontal * giroEfectivo * Time.deltaTime;
-            transform.Translate(movimientoX, 0, 0);
-
-            // Inclinación visual al girar (solo si hay movimiento)
-            if (direccionHorizontal != 0)
-            {
-                float inclinacionEfectiva = CalcularInclinacionEfectiva();
-                transform.rotation = Quaternion.Euler(0, direccionHorizontal * inclinacionEfectiva, 0);
-            }
-            else
-            {
-                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, 5f * Time.deltaTime);
-            }
-        }
-        else
-        {
-            // SI ESTÁ PARADO: No girar y mantener rotación neutral
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, 5f * Time.deltaTime);
-        }
-
-        // Aplicar movimiento hacia adelante/atrás (solo si hay velocidad)
-        if (velocidadActual != 0)
-        {
-            float movimientoZ = velocidadActual * Time.deltaTime;
-            transform.Translate(0, 0, movimientoZ);
-        }
-    }
-
-    float CalcularGiroEfectivo()
-    {
-        float velocidadAbsoluta = Mathf.Abs(velocidadActual);
-        float factorReduccion = Mathf.Clamp01(velocidadAbsoluta / velocidadReferencia);
-        float giroEfectivo = Mathf.Lerp(giroMaximo, giroMinimo, factorReduccion);
-        return giroEfectivo;
-    }
-
-    float CalcularInclinacionEfectiva()
-    {
-        float velocidadAbsoluta = Mathf.Abs(velocidadActual);
-        float factorReduccion = Mathf.Clamp01(velocidadAbsoluta / velocidadReferencia);
-        float inclinacionEfectiva = Mathf.Lerp(12f, 4f, factorReduccion);
-        return inclinacionEfectiva;
-    }
-
-    void ControlarVelocidad(Vector2 input)
-    {
-        // Acelerar - MÁS LENTO PARA LLEGAR A LA MÁXIMA
-        if (acelerarAction.ReadValue<float>() > 0 || input.y > 0)
-        {
-            velocidadActual = Mathf.Lerp(velocidadActual, aceleracion, aceleracionSuave * Time.deltaTime);
-        }
-        // Frenar/marcha atrás - MÁS SUAVE
-        else if (frenarAction.ReadValue<float>() > 0 || input.y < 0)
-        {
-            if (velocidadActual > 0)
-            {
-                velocidadActual = Mathf.Lerp(velocidadActual, 0f, 2f * Time.deltaTime);
-            }
-            else
-            {
-                velocidadActual = Mathf.Lerp(velocidadActual, -frenado, 1f * Time.deltaTime);
-            }
-        }
-        // Frenado natural - MÁS SUAVE
-        else
-        {
-            velocidadActual = Mathf.Lerp(velocidadActual, 0f, 1.5f * Time.deltaTime);
-            
-            if (Mathf.Abs(velocidadActual) < 0.05f)
-            {
-                velocidadActual = 0f;
-            }
-        }
-    }
-
-    void LimitarPosicion()
-    {
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, limiteIzquierdo, limiteDerecho);
-        transform.position = pos;
-    }
-
-    private void OnTriggerEnter(Collider otro)
-    {
-        if (otro.CompareTag("obstaculo"))
-        {
-            Debug.Log("Colisión con obstáculo");
-            velocidadActual = 0f;
-        }
     }
 
     void OnDestroy()
@@ -287,28 +286,5 @@ public class movimientoCoche : MonoBehaviour
         movimientoAction?.Disable();
         acelerarAction?.Disable();
         frenarAction?.Disable();
-    }
-
-    // Métodos opcionales para controlar el temporizador
-    public void IniciarTemporizador()
-    {
-        temporizadorActivo = true;
-    }
-
-    public void PausarTemporizador()
-    {
-        temporizadorActivo = false;
-    }
-
-    public void ReiniciarTemporizador()
-    {
-        tiempoTranscurrido = 0f;
-        temporizadorActivo = true;
-    }
-
-    public void DetenerTemporizador()
-    {
-        temporizadorActivo = false;
-        tiempoTranscurrido = 0f;
     }
 }
