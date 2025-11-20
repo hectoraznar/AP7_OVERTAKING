@@ -32,6 +32,11 @@ public class PlayerMovement : MonoBehaviour
     public int puntosPorSegundo = 5;
     public float intervaloPuntos = 1f;
     
+    /*
+    pasar el script del spawn; 
+
+    falta implementar logica de cada x puntos llamo al metodo de reducir timepo del spawner y le dices cuanto tiempo tienes que reducir. ej= 0.2f, 0.5f, 1f;
+    */
     private float currentForwardSpeed = 0f; // Velocidad actual hacia adelante
     private float tiempoTranscurrido = 0f;
     private int puntosTotales = 0;
