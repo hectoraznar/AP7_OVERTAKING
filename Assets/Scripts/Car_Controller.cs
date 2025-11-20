@@ -2,84 +2,76 @@ using UnityEngine;
 
 public class Car_Controller : MonoBehaviour
 {
- [Header("Configuración del Coche")]
-    public float potenciaAceleracion = 800f;     // Fuerza al acelerar
-    public float potenciaFrenado = 1000f;        // Fuerza al frenar
-    public float velocidadMaxima = 30f;          // m/s (~108 km/h)
-    public float velocidadMaximaReversa = 15f;   // m/s (~54 km/h)
-    public float friccionDesaceleracion = 0.95f; // Desaceleración natural (0.9 = más rápido)
-    public float sensibilidadGiro = 2f;         // Giro por segundo
+        [Header("Configuración de Velocidades")]
+    public float velocidadAdelante = 10f;
+    public float velocidadAtras = 5f;
+    public float velocidadLateral = 3f;
+    
+    [Header("Configuración de Ejes")]
+    public string ejeHorizontal = "Horizontal";
+    public string ejeVertical = "Vertical";
+    public string ejeAcelerar = "Fire1"; // Click izquierdo o Ctrl
+    public string ejeFrenar = "Fire2";   // Click derecho o Alt
 
     private Rigidbody rb;
-    private float inputAceleracion;
-    private float inputGiro;
+    private Vector3 posicionInicialCoche;
 
-    void Awake()
+    void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.centerOfMass = new Vector3(0, -0.5f, 0); // Más estable
-    }
-
-    void Update()
-    {
-        // Capturar input
-        inputAceleracion = Input.GetAxis("Vertical");   // W/S o ↑/↓
-        inputGiro = Input.GetAxis("Horizontal");        // A/D o ←/→
-    
-
-    }
-    void FixedUpdate(){
-        AplicarAceleracionYFrenado();
-       AplicarGiro();
-        AplicarDesaceleracionNatural();
-        LimitarVelocidad();
-    }
-    
-    void AplicarAceleracionYFrenado()
-    {
-        Vector3 fuerza = transform.forward * inputAceleracion * potenciaAceleracion * Time.fixedDeltaTime;
-        rb.AddForce(fuerza, ForceMode.Acceleration);
-    }
-
-    void AplicarGiro()
-    {
-        if (inputAceleracion != 0 || rb.linearVelocity.magnitude > 1f)
+        
+        // Si no hay Rigidbody, agregamos uno
+        if (rb == null)
         {
-            float giro = inputGiro * sensibilidadGiro * Time.fixedDeltaTime * 60f;
-            transform.Rotate(0, giro, 0);
+            rb = gameObject.AddComponent<Rigidbody>();
         }
+        
+        // Configurar Rigidbody para coche
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+       // rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        
+        // Guardar posición inicial para mantener altura
+        posicionInicialCoche = transform.position;
     }
 
-    void AplicarDesaceleracionNatural()
+    void FixedUpdate()
     {
-        if (Mathf.Abs(inputAceleracion) < 0.1f && Mathf.Abs(inputGiro) < 0.1f)
+        // Leer inputs usando GetAxis
+        float inputHorizontal = Input.GetAxis(ejeHorizontal);
+        float inputVertical = Input.GetAxis(ejeVertical);
+        //float acel = Input.GetAxis(ejeAcelerar);
+        float fren = Input.GetAxis(ejeFrenar);
+
+        Vector3 movimiento = Vector3.zero;
+
+        // MOVIMIENTO ADELANTE/ATRÁS
+        if (inputVertical > 0.1f)
         {
-            Vector3 velocidad = rb.linearVelocity;
-            velocidad *= friccionDesaceleracion;
-            rb.linearVelocity = velocidad;
+            movimiento.z = velocidadAdelante * Time.fixedDeltaTime;
         }
+        else if (fren > 0.1f)
+        {
+            movimiento.z = -velocidadAtras * Time.fixedDeltaTime;
+        }
+
+        // MOVIMIENTO LATERAL SOLO SI VA HACIA ADELANTE
+        if (Mathf.Abs(inputHorizontal) > 0.1f && inputVertical > 0.1f)
+        {
+            movimiento.x = inputHorizontal * velocidadLateral * Time.fixedDeltaTime;
+        }
+
+        // USAR MovePosition PARA RESPETAR COLISIONES
+        if (movimiento != Vector3.zero)
+        {
+            Vector3 nuevaPosicion = rb.position + movimiento;
+            rb.MovePosition(nuevaPosicion);
+        }
+
+        // Mantener altura constante
+        Vector3 pos = rb.position;
+        pos.y = posicionInicialCoche.y;
+        rb.position = pos;
     }
 
-    void LimitarVelocidad()
-    {
-        Vector3 velocidad = rb.linearVelocity;
-        float velocidadActual = velocidad.magnitude;
-
-        if (inputAceleracion > 0 && velocidadActual > velocidadMaxima)
-        {
-            rb.linearVelocity = velocidad.normalized * velocidadMaxima;
-        }
-        else if (inputAceleracion < 0 && velocidadActual > velocidadMaximaReversa)
-        {
-            rb.linearVelocity = velocidad.normalized * velocidadMaximaReversa;
-        }
-    }
-    private void OnCollisionEnter(Collision collision)
-    {
-        if(collision.gameObject.CompareTag("obstaculo"))
-        {
-            // Lógica de colisión con un obstáculo
-            Debug.Log("¡Colisión con un obstáculo!");
-        }
-    }
 }

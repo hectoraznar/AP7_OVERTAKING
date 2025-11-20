@@ -4,7 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using System.Linq;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Rigidbody))]
 public class movimientoCoche : MonoBehaviour
 {
     [Header("Referencias")]
@@ -12,10 +12,10 @@ public class movimientoCoche : MonoBehaviour
     public GameObject carreteraOriginal;
     public GameObject triggerObject;
 
-    [Header("Movimiento - Con CharacterController")]
-    public float velocidadLateral = 15f;
-    public float velocidadAdelante = 25f;
-    public float velocidadAtras = 12f;
+    [Header("Movimiento - Con Colisiones")]
+    public float velocidadLateral = 40f;
+    public float velocidadAdelante = 60f;
+    public float velocidadAtras = 30f;
 
     [Header("UI")]
     public TextMeshProUGUI textoVelocidad;
@@ -34,7 +34,7 @@ public class movimientoCoche : MonoBehaviour
     private InputAction acelerarAction;
     private InputAction frenarAction;
 
-    private CharacterController controller;
+    private Rigidbody rb;
     private float velocidadVisual;
     private float tiempoTranscurrido;
     private int puntosTotales;
@@ -47,13 +47,16 @@ public class movimientoCoche : MonoBehaviour
     void Awake()
     {
         ConfigurarInput();
-        controller = GetComponent<CharacterController>();
-        posicionInicialCoche = transform.position;
+        rb = GetComponent<Rigidbody>();
+        // Configurar Rigidbody para colisiones
+      //  rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
     }
 
     void Start()
     {
         if (camara == null) camara = Camera.main;
+        posicionInicialCoche = transform.position;
 
         if (carreteraOriginal == null)
             carreteraOriginal = GameObject.Find("carretera_original");
@@ -91,9 +94,13 @@ public class movimientoCoche : MonoBehaviour
             segmentosActivos.Enqueue(carreteraOriginal);
     }
 
-    void Update()
+    void FixedUpdate()
     {
         MovimientoConColisiones();
+    }
+
+    void Update()
+    {
         ActualizarTemporizador();
         ActualizarPuntos();
         ActualizarVelocimetro();
@@ -110,34 +117,34 @@ public class movimientoCoche : MonoBehaviour
         // MOVIMIENTO ADELANTE/ATRÁS
         if (acel > 0.1f)
         {
-            movimiento.z = velocidadAdelante * Time.deltaTime;
+            movimiento.z = velocidadAdelante * Time.fixedDeltaTime;
         }
         else if (fren > 0.1f)
         {
-            movimiento.z = -velocidadAtras * Time.deltaTime;
+            movimiento.z = -velocidadAtras * Time.fixedDeltaTime;
         }
 
         // MOVIMIENTO LATERAL SOLO SI VA HACIA ADELANTE
         if (Mathf.Abs(input.x) > 0.1f && acel > 0.1f)
         {
-            movimiento.x = input.x * velocidadLateral * Time.deltaTime;
+            movimiento.x = input.x * velocidadLateral * Time.fixedDeltaTime;
         }
 
-        // APLICAR MOVIMIENTO CON DETECCIÓN DE COLISIONES
+        // USAR MovePosition PARA RESPETAR COLISIONES
         if (movimiento != Vector3.zero)
         {
-            // CharacterController.Move() detecta colisiones automáticamente
-            controller.Move(movimiento);
+            Vector3 nuevaPosicion = rb.position + movimiento;
+            rb.MovePosition(nuevaPosicion);
         }
 
         // Mantener altura constante
-        Vector3 pos = transform.position;
-        pos.y = posicionInicialCoche.y;
-        transform.position = pos;
+        //Vector3 pos = rb.position;
+        //pos.y = posicionInicialCoche.y;
+        //rb.position = pos;
     }
 
     // --------------------------
-    // Mapa Infinito (igual)
+    // Mapa Infinito
     // --------------------------
     void GenerarNuevoMapa()
     {
@@ -232,8 +239,8 @@ public class movimientoCoche : MonoBehaviour
         else
         {
             textoVelocidad.text = kmh + " km/h";
-            textoVelocidad.color = kmh < 80 ? Color.green : 
-                                 kmh < 160 ? Color.yellow : 
+            textoVelocidad.color = kmh < 100 ? Color.green : 
+                                 kmh < 180 ? Color.yellow : 
                                  Color.red;
         }
     }
@@ -291,3 +298,5 @@ public class movimientoCoche : MonoBehaviour
         frenarAction?.Disable();
     }
 }
+
+
