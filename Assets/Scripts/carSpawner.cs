@@ -36,7 +36,7 @@ public class CarSpawner : MonoBehaviour
 
     private void FindPlayerCar()
     {
-        playerCar = GameObject.FindGameObjectWithTag("Player").transform;
+        playerCar = GameObject.FindGameObjectWithTag("player").transform;
     }
 
     private void FollowPlayer()

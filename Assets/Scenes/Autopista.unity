@@ -384,6 +384,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1001 &379186104
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.7732933
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.47
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2.7891061
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
+      propertyPath: m_Name
+      value: coche3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5856a867cbdf1e0438520f0d2f351b9b, type: 3}
 --- !u!1 &486396544
 GameObject:
   m_ObjectHideFlags: 0
@@ -401,7 +458,7 @@ GameObject:
   - component: {fileID: 486396554}
   m_Layer: 0
   m_Name: Coche
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -508,19 +565,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77d585e4ef5a35c458fd951259141be0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::movimientoCoche
-  camara: {fileID: 0}
-  carreteraOriginal: {fileID: 0}
-  triggerObject: {fileID: 0}
-  velocidadLateral: 40
-  velocidadAdelante: 60
-  velocidadAtras: 30
-  textoVelocidad: {fileID: 0}
-  textoTemporizador: {fileID: 0}
-  textoPuntos: {fileID: 0}
-  puntosPorSegundo: 5
-  intervaloPuntos: 1
-  cooldownGeneracion: 0.6
-  maxSegmentosActivos: 6
 --- !u!54 &486396551
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -588,12 +632,12 @@ MonoBehaviour:
   minLateralMultiplier: 0.3
   maxLateralSpeed: 20
   carreteraOriginal: {fileID: 2735898134798707293, guid: 9f398bd21833a604fa17cb0cfdfc5096, type: 3}
-  triggerObject: {fileID: 0}
+  triggerObject: {fileID: 4682355279954694459, guid: 3736c786b302c8647b8c89f859907b71, type: 3}
   cooldownGeneracion: 0.6
   maxSegmentosActivos: 6
-  textoVelocidad: {fileID: 0}
-  textoTemporizador: {fileID: 0}
-  textoPuntos: {fileID: 0}
+  textoVelocidad: {fileID: 740865951}
+  textoTemporizador: {fileID: 31703918}
+  textoPuntos: {fileID: 955910445}
   puntosPorSegundo: 5
   intervaloPuntos: 1
 --- !u!1 &545145979
@@ -2002,3 +2046,4 @@ SceneRoots:
   - {fileID: 1882325366}
   - {fileID: 2053051739367002150}
   - {fileID: 1098732214}
+  - {fileID: 379186104}
