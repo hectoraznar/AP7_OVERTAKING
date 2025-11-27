@@ -8,9 +8,9 @@ using System.Linq;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movimiento")]
-    public float moveSpeed = 200f; // Velocidad de movimiento lateral base
-    public float forwardSpeed = 20f; // Velocidad base hacia adelante
-    public float maxForwardSpeed = 80f; // Velocidad máxima hacia adelante
+    public float moveSpeed = 500f; // Velocidad de movimiento lateral base
+    public float forwardSpeed = 40f; // Velocidad base hacia adelante
+    public float maxForwardSpeed = 160f; // Velocidad máxima hacia adelante
     public float acceleration = 10f; // Qué tan rápido acelera
     public float normalDeceleration = 4f; // Deceleración normal cuando sueltas W
     public float brakeDeceleration = 2000000f; // Deceleración cuando presionas S
