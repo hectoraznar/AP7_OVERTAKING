@@ -1,41 +1,66 @@
 using UnityEngine;
 
-public class carSpawner : MonoBehaviour
+public class CarSpawner : MonoBehaviour
 {
-    public Transform [] spawnPoints;
+    [Header("Configuración de Spawn")]
+    public Transform[] spawnPoints;
     public GameObject carPrefab;
-    float spawnInterval = 3f;
-    private float currentSpawnTime;
     
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    [Header("Tiempos de Spawn")]
+    public float initialSpawnInterval = 3f;
+    public float minSpawnInterval = 1f;
+    
+    private float currentSpawnTime;
+    private float currentSpawnInterval;
+    private Transform playerCar;
+
     void Start()
     {
-        currentSpawnTime = spawnInterval;        
+        currentSpawnInterval = initialSpawnInterval;
+        currentSpawnTime = currentSpawnInterval;
+        FindPlayerCar();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        spawnInterval-=Time.deltaTime;
-        if(spawnInterval <= 0f)
+        currentSpawnTime -= Time.deltaTime;
+        
+        if(currentSpawnTime <= 0f)
         {
-            invokeCar();
-            spawnInterval = 3f;
+            SpawnCar();
+            currentSpawnTime = currentSpawnInterval;
         }
-    }
-    private void invokeCar()
-    {
-        int randomIndex = Random.Range(0, spawnPoints.Length);
-        Instantiate(carPrefab, spawnPoints[randomIndex].position, Quaternion.identity);
+        
+        FollowPlayer();
     }
 
-    public void decreaseTimeByPlayerScore(float amount)
+    private void FindPlayerCar()
     {
-        currentSpawnTime -= amount;
-        spawnInterval = currentSpawnTime;
-        if(spawnInterval < 1f)
-        {
-            spawnInterval = 1f;
-        }
+        playerCar = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+
+    private void FollowPlayer()
+    {
+        if (playerCar == null) return;
+        
+        // Mover TODOS los spawn points delante del jugador
+        transform.position = playerCar.position + playerCar.forward * 15f;
+    }
+
+    private void SpawnCar()
+    {
+        if (spawnPoints.Length == 0) return;
+
+        int randomIndex = Random.Range(0, spawnPoints.Length);
+        Transform selectedSpawnPoint = spawnPoints[randomIndex];
+        
+        Instantiate(carPrefab, selectedSpawnPoint.position, Quaternion.identity);
+    }
+
+    public void DecreaseSpawnTime(float amount)
+    {
+        currentSpawnInterval -= amount;
+        if(currentSpawnInterval < minSpawnInterval)
+            currentSpawnInterval = minSpawnInterval;
     }
 }

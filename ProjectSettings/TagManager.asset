@@ -6,6 +6,7 @@ TagManager:
   tags:
   - trigger
   - obstaculo
+  - player
   layers:
   - Default
   - TransparentFX
