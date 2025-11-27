@@ -1,29 +1,29 @@
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class canviEscena : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void anarJoc()
     {
         SceneManager.LoadScene("Autopista");
     }
+
     public void anarGarage()
     {
         SceneManager.LoadScene("Garaje");
     }
+
     public void anarMenu()
     {
         SceneManager.LoadScene("Inicio");
     }
-    
-    
 
-    // Update is called once per frame
-    /*public void AnarAescenaTitol()
+    public void sortirApp()
     {
-        variablesGlobals.ReiniciarValors();
-        SceneManager.LoadScene("escenaTitol");
-    }*/
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
 }
