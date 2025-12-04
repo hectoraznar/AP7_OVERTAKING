@@ -1,4 +1,3 @@
-using Unity.PlasticSCM.Editor.WebApi;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,22 +14,39 @@ public class CarChanger : MonoBehaviour
     // Variable para guardar el mesh original
     private Mesh originalMesh;
     private bool hasOriginalMesh = false;
-    private Mesh currentCarModel; 
-    public SaveChangeCarSkin mSCS;
+    private Mesh currentMesh; // Cambiado a Mesh en lugar de MeshFilter
+    
+    // Cambiado a array de Mesh en lugar de MeshFilter
+    public Mesh[] carMeshes; 
+    
+
     void Start()
     {
-        carObject = GameObject.Find("Car");
-        btnCar1 = GameObject.Find("btnCar1").GetComponent<Button>();
-        btnCar2 = GameObject.Find("btnCar2").GetComponent<Button>();
+        
+        // Buscar objetos si no están asignados
+        if (carObject == null)
+            carObject = GameObject.Find("Car");
+        
+        if (btnCar1 == null)
+            btnCar1 = GameObject.Find("btnCar1")?.GetComponent<Button>();
+            
+        if (btnCar2 == null)
+            btnCar2 = GameObject.Find("btnCar2")?.GetComponent<Button>();
 
         // Guardar el mesh original al inicio
         if (carObject != null)
         {
             MeshFilter meshFilter = carObject.GetComponent<MeshFilter>();
-            if (meshFilter != null && meshFilter.mesh != null)
+            if (meshFilter != null && meshFilter.sharedMesh != null)
             {
-                originalMesh = meshFilter.mesh;
+                originalMesh = meshFilter.sharedMesh;
                 hasOriginalMesh = true;
+                
+                // Inicializar con el primer mesh del array
+                if (carMeshes != null && carMeshes.Length > 0)
+                {
+                    currentMesh = originalMesh;
+                }
             }
         }
         
@@ -48,105 +64,100 @@ public class CarChanger : MonoBehaviour
     
     void ChangeToSphere()
     {
-        if (carObject != null)
+        if (carObject == null || carMeshes == null || carMeshes.Length < 2)
         {
-            // Método 1: Cambiar el MeshFilter a una esfera
-            ChangeMeshToSphere();
-            
-            // Método 2: O reemplazar por un prefab (descomenta la línea de abajo)
-            // ReplaceWithSpherePrefab();
+            Debug.LogWarning("Objeto car no asignado o carMeshes no tiene suficientes elementos");
+            return;
         }
-        else
-        {
-            Debug.LogWarning("No hay objeto car asignado");
-        }
+        
+        // Cambiar al segundo mesh (esfera)
+        ApplyMesh(carMeshes[1]);
     }
     
     void RestoreOriginalShape()
     {
-        if (carObject != null && hasOriginalMesh)
+        if (carObject == null)
         {
-            MeshFilter meshFilter = carObject.GetComponent<MeshFilter>();
-            if (meshFilter != null)
-            {
-                meshFilter.mesh = originalMesh;
-                Debug.Log("Forma original restaurada");
-            }
+            Debug.LogWarning("Objeto car no asignado");
+            return;
         }
-        else if (!hasOriginalMesh && carObject != null)
+        
+        if (hasOriginalMesh)
         {
-            // Si no se guardó el mesh original, restaurar a cubo
-            RestoreToCube();
+            // Restaurar mesh original
+            ApplyMesh(originalMesh);
+        }
+        else if (carMeshes != null && carMeshes.Length > 0)
+        {
+            // Usar el primer mesh del array
+            ApplyMesh(carMeshes[0]);
+            currentMesh = carMeshes[0];
         }
         else
         {
-            Debug.LogWarning("No hay objeto car asignado o no se guardó la forma original");
+            Debug.LogWarning("No hay mesh original guardado ni carMeshes configurado");
         }
     }
     
-    public void ChangeMeshToSphere()
+    // Método para aplicar un mesh al objeto
+    private void ApplyMesh(Mesh meshToApply)
     {
-        // Obtener o agregar el componente MeshFilter
+        if (carObject == null || meshToApply == null)
+            return;
+            
         MeshFilter meshFilter = carObject.GetComponent<MeshFilter>();
         if (meshFilter == null)
         {
-            meshFilter = carObject.AddComponent<MeshFilter>();
+            Debug.LogWarning("El objeto no tiene MeshFilter");
+            return;
         }
         
-        // Cambiar el mesh a una esfera
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        Mesh sphereMesh = sphere.GetComponent<MeshFilter>().sharedMesh;
-        currentCarModel = sphereMesh;
-
-        meshFilter.mesh = sphereMesh;
-        // PASAR LA ESFERA 
-
-
+        // Aplicar el mesh
+        meshFilter.sharedMesh = meshToApply;
+        currentMesh = meshToApply;
         
-        // Destruir la esfera temporal
-        Destroy(sphere);
-        
-        Debug.Log("Cubo convertido a esfera");
+        Debug.Log("Mesh cambiado a: " + meshToApply.name);
     }
     
-    public void RestoreToCube()
+    // Método para aplicar mesh por índice desde el array
+    public void ApplyMeshByIndex(int index)
     {
-        MeshFilter meshFilter = carObject.GetComponent<MeshFilter>();
-        if (meshFilter != null)
+        if (carMeshes == null || index < 0 || index >= carMeshes.Length)
         {
-            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            meshFilter.mesh = cube.GetComponent<MeshFilter>().sharedMesh;
-            currentCarModel = cube.GetComponent<MeshFilter>().sharedMesh;
-           
-            Destroy(cube);
-            Debug.Log("Restaurado a cubo");
+            Debug.LogWarning($"Índice {index} fuera de rango o carMeshes no configurado");
+            return;
         }
+        
+        ApplyMesh(carMeshes[index]);
     }
     
-    void ReplaceWithSpherePrefab()
+    // Método para aplicar un mesh desde otro MeshFilter
+    public void ApplyMeshFromMeshFilter(MeshFilter sourceMeshFilter)
     {
-        // Método alternativo usando prefab
-        if (spherePrefab != null)
+        if (sourceMeshFilter == null || sourceMeshFilter.sharedMesh == null)
         {
-            Vector3 position = carObject.transform.position;
-            Quaternion rotation = carObject.transform.rotation;
-            Transform parent = carObject.transform.parent;
-            
-            // Destruir el cubo actual
-            Destroy(carObject);
-            
-            // Instanciar la esfera
-            carObject = Instantiate(spherePrefab, position, rotation, parent);
-            carObject.name = "Car";
+            Debug.LogWarning("MeshFilter de origen no válido");
+            return;
         }
-        else
-        {
-            Debug.LogWarning("No hay spherePrefab asignado");
-        }
+        
+        ApplyMesh(sourceMeshFilter.sharedMesh);
     }
-
+    
+    // Getters y Setters
+    public Mesh GetCurrentMesh()
+    {
+        return currentMesh;
+    }
+    
+    public void SetCurrentMesh(Mesh newMesh)
+    {
+        currentMesh = newMesh;
+        ApplyMesh(newMesh);
+    }
     public Mesh getCarMesh()
     {
-        return currentCarModel;
+        Debug.Log(currentMesh.name.ToString());
+        return currentMesh;
+        
     }
 }
