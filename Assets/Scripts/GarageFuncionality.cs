@@ -20,6 +20,10 @@ public class GarageFuncionality : MonoBehaviour
     public Material materialOriginalCubo;
     private Color colorOriginal;
     public MeshRenderer myMeshRender;
+    private Color currenColor;
+    
+
+
     void Start()
     {
         // Inicializar array de colores con valores por defecto si está vacío
@@ -84,6 +88,7 @@ public class GarageFuncionality : MonoBehaviour
     {
         if (indiceColor >= 0 && indiceColor < colores.Length)
         {
+            currenColor = colores[indiceColor];
             CambiarColor(colores[indiceColor]);
             Debug.Log($"Color cambiado a: {ObtenerNombreColor(indiceColor)} (Índice: {indiceColor})");
         }
@@ -129,4 +134,8 @@ public class GarageFuncionality : MonoBehaviour
     public void CambiarColorPink() => CambiarColorPorIndice(4);
     public void CambiarColorGrey() => CambiarColorPorIndice(5);
     public void CambiarColorBlack() => CambiarColorPorIndice(6);
+    public Color getCurrentColor()
+    {
+        return currenColor;
+    }
 }
