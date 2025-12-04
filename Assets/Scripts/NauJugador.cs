@@ -16,22 +16,26 @@ public class PlayerMovement : MonoBehaviour
     public float brakeDeceleration = 2000000f; // Deceleración cuando presionas S
     public float minLateralMultiplier = 0.3f; // Mínimo movimiento lateral (a velocidad 0)
     public float maxLateralSpeed = 20f; // Velocidad a la que se alcanza el giro completo
-    
+
     [Header("Mapa Infinito")]
     public GameObject carreteraOriginal;
     public GameObject triggerObject;
     public float cooldownGeneracion = 0.6f;
     public int maxSegmentosActivos = 6;
-    
+
     [Header("UI")]
     public TextMeshProUGUI textoVelocidad;
     public TextMeshProUGUI textoTemporizador;
     public TextMeshProUGUI textoPuntos;
-    
+
     [Header("Puntos")]
     public int puntosPorSegundo = 5;
     public float intervaloPuntos = 1f;
-    
+    [Header("Sistema de Coins")]
+    public int multiplicadorCoins = 2; // Multiplicador de coins (por defecto x2)
+    public int coins = 0; // Coins totales
+    public TextMeshProUGUI textoCoins; // UI para mostrar coins
+
     /*
     pasar el script del spawn; 
 
@@ -43,11 +47,11 @@ public class PlayerMovement : MonoBehaviour
     private float tiempoUltimoPunto = 0f;
     private float velocidadVisual = 0f;
     private float alturaFija; // Para mantener la altura constante
-    
+
     // Mapa Infinito
     private Queue<GameObject> segmentosActivos = new Queue<GameObject>();
     private bool puedeRegenerar = true;
-    
+
     // Input System
     private InputAction movimientoAction;
     private InputAction acelerarAction;
@@ -56,10 +60,10 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         ConfigurarInput();
-        
+
         // Guardar la altura inicial para mantenerla fija
         alturaFija = transform.position.y;
-        
+
         // Buscar referencias UI si no están asignadas
         if (textoVelocidad == null)
             textoVelocidad = GameObject.Find("textoVelocidad")?.GetComponent<TextMeshProUGUI>();
@@ -67,7 +71,7 @@ public class PlayerMovement : MonoBehaviour
             textoTemporizador = GameObject.Find("textoTemporizador")?.GetComponent<TextMeshProUGUI>();
         if (textoPuntos == null)
             textoPuntos = GameObject.Find("textoPuntos")?.GetComponent<TextMeshProUGUI>();
-            
+
         // Inicializar mapa infinito
         if (carreteraOriginal == null)
             carreteraOriginal = GameObject.Find("carretera_original");
@@ -82,7 +86,7 @@ public class PlayerMovement : MonoBehaviour
                 if (byTag != null) triggerObject = byTag;
             }
         }
-        
+
         if (carreteraOriginal != null)
         {
             segmentosActivos.Enqueue(carreteraOriginal);
@@ -101,49 +105,49 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector2 input = movimientoAction.ReadValue<Vector2>();
             float horizontalInput = input.x;
-            
+
             // Calcular multiplicador de movimiento lateral basado en la velocidad
             float speedRatio = Mathf.Clamp01(currentForwardSpeed / maxLateralSpeed);
             float lateralMultiplier = Mathf.Lerp(minLateralMultiplier, 1.0f, speedRatio);
-            
+
             Vector3 lateralMovement = new Vector3(horizontalInput, 0f, 0f) * moveSpeed * lateralMultiplier * Time.deltaTime;
             transform.Translate(lateralMovement);
         }
-        
+
         // CONTROL DE ACELERACIÓN con Input System
         float acel = acelerarAction.ReadValue<float>();
         float fren = frenarAction.ReadValue<float>();
-        
+
         if (acel > 0.1f)
         {
             // Aumentar velocidad progresivamente
             currentForwardSpeed += acceleration * Time.deltaTime;
             currentForwardSpeed = Mathf.Min(currentForwardSpeed, maxForwardSpeed);
         }
-        
+
         // APLICAR DECELERACIÓN (normal o de frenado)
         float currentDeceleration = normalDeceleration;
-        
+
         if (fren > 0.1f)
         {
             // Usar deceleración de frenado cuando se presiona S
             currentDeceleration = brakeDeceleration;
         }
-        
+
         // Solo aplicar deceleración si no estamos acelerando
         if (acel <= 0.1f)
         {
             currentForwardSpeed -= currentDeceleration * Time.deltaTime;
             currentForwardSpeed = Mathf.Max(currentForwardSpeed, 0f);
         }
-        
+
         // APLICAR MOVIMIENTO HACIA ADELANTE
         Vector3 forwardMovement = new Vector3(0f, 0f, currentForwardSpeed) * Time.deltaTime;
         transform.Translate(forwardMovement);
-        
+
         // BLOQUEAR ALTURA - CORREGIR POSICIÓN Y
         BloquearAltura();
-        
+
         // ACTUALIZAR UI
         ActualizarVelocimetro();
         ActualizarTemporizador();
@@ -166,7 +170,7 @@ public class PlayerMovement : MonoBehaviour
     // --------------------------
     void GenerarNuevoMapa()
     {
-        if (!puedeRegenerar || carreteraOriginal == null) 
+        if (!puedeRegenerar || carreteraOriginal == null)
         {
             Debug.Log("No se puede regenerar: puedeRegenerar=" + puedeRegenerar + ", carreteraOriginal=" + (carreteraOriginal != null));
             return;
@@ -214,7 +218,7 @@ public class PlayerMovement : MonoBehaviour
 
         puedeRegenerar = false;
         Invoke(nameof(ReactivarGeneracion), cooldownGeneracion);
-        
+
         Debug.Log("Nuevo segmento generado. Total activos: " + segmentosActivos.Count);
     }
 
@@ -234,7 +238,7 @@ public class PlayerMovement : MonoBehaviour
         return true;
     }
 
-    void ReactivarGeneracion() 
+    void ReactivarGeneracion()
     {
         puedeRegenerar = true;
         Debug.Log("Generación reactivada");
@@ -243,7 +247,7 @@ public class PlayerMovement : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log("Trigger entered: " + other.gameObject.name + ", Tag: " + other.tag);
-        
+
         if ((triggerObject != null && other.gameObject == triggerObject) || other.CompareTag("trigger"))
         {
             Debug.Log("Generando nuevo mapa por trigger...");
@@ -263,10 +267,10 @@ public class PlayerMovement : MonoBehaviour
         velocidadVisual = Mathf.Lerp(velocidadVisual, velocidadKmh, Time.deltaTime * 8f);
 
         int kmh = Mathf.RoundToInt(velocidadVisual);
-        
+
         // Mostrar velocidad
         textoVelocidad.text = kmh + " km/h";
-        
+
         // Cambiar color según velocidad
         if (kmh < 30)
             textoVelocidad.color = Color.green;
@@ -279,7 +283,7 @@ public class PlayerMovement : MonoBehaviour
     void ActualizarTemporizador()
     {
         if (textoTemporizador == null) return;
-        
+
         tiempoTranscurrido += Time.deltaTime;
         int min = Mathf.FloorToInt(tiempoTranscurrido / 60f);
         int seg = Mathf.FloorToInt(tiempoTranscurrido % 60f);
@@ -289,13 +293,34 @@ public class PlayerMovement : MonoBehaviour
     void ActualizarPuntos()
     {
         if (textoPuntos == null) return;
-        
+
         if (Time.time - tiempoUltimoPunto >= intervaloPuntos)
         {
             puntosTotales += puntosPorSegundo;
+
+            // Calcular coins (puntos multiplicados por el multiplicador)
+            coins = puntosTotales * multiplicadorCoins;
+
             tiempoUltimoPunto = Time.time;
             textoPuntos.text = "Puntos: " + puntosTotales;
+
+            // Actualizar texto de coins si está asignado
+            if (textoCoins != null)
+            {
+                textoCoins.text = "Coins: " + coins;
+            }
         }
+    }
+
+    // Añade este método para acceder a las coins desde otros scripts:
+    public int ObtenerCoins()
+    {
+        return coins;
+    }
+
+    public int ObtenerPuntos()
+    {
+        return puntosTotales;
     }
 
     // --------------------------
