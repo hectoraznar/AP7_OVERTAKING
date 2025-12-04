@@ -36,6 +36,9 @@ public class PlayerMovement : MonoBehaviour
     public int coins = 0; // Coins totales
     public TextMeshProUGUI textoCoins; // UI para mostrar coins
 
+    [Header("Vayas")]
+    public Vector3 escalaVayas = new Vector3(1f, 1f, 1f); // Escala para las vayas clonadas
+
     /*
     pasar el script del spawn; 
 
@@ -51,6 +54,8 @@ public class PlayerMovement : MonoBehaviour
     // Mapa Infinito
     private Queue<GameObject> segmentosActivos = new Queue<GameObject>();
     private bool puedeRegenerar = true;
+    private GameObject vayasDerReferencia = null;
+    private GameObject vayasIzqReferencia = null;
 
     // Input System
     private InputAction movimientoAction;
@@ -96,6 +101,9 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.LogError("No se encontró carreteraOriginal!");
         }
+
+        // Buscar referencias de vayas al inicio
+        BuscarVayasOriginales();
     }
 
     void Update()
@@ -169,57 +177,168 @@ public class PlayerMovement : MonoBehaviour
     // MAPA INFINITO - CORREGIDO
     // --------------------------
     void GenerarNuevoMapa()
+{
+    if (!puedeRegenerar || carreteraOriginal == null)
     {
-        if (!puedeRegenerar || carreteraOriginal == null)
-        {
-            Debug.Log("No se puede regenerar: puedeRegenerar=" + puedeRegenerar + ", carreteraOriginal=" + (carreteraOriginal != null));
-            return;
-        }
+        Debug.Log("No se puede regenerar: puedeRegenerar=" + puedeRegenerar + ", carreteraOriginal=" + (carreteraOriginal != null));
+        return;
+    }
 
-        // OBTENER EL ÚLTIMO SEGMENTO CORRECTAMENTE
-        GameObject ultimoSegmento = segmentosActivos.ToArray()[segmentosActivos.Count - 1];
-        Debug.Log("Generando nuevo segmento después de: " + ultimoSegmento.name);
+    // OBTENER EL ÚLTIMO SEGMENTO CORRECTAMENTE
+    GameObject ultimoSegmento = segmentosActivos.ToArray()[segmentosActivos.Count - 1];
+    Debug.Log("Generando nuevo segmento después de: " + ultimoSegmento.name);
 
-        Bounds bBase;
-        TryGetBounds(carreteraOriginal, out bBase);
-        float largo = bBase.size.z;
+    Bounds bBase;
+    TryGetBounds(carreteraOriginal, out bBase);
+    float largo = bBase.size.z;
 
-        Vector3 posNuevo = new Vector3(
-            ultimoSegmento.transform.position.x,
-            ultimoSegmento.transform.position.y,
-            ultimoSegmento.transform.position.z + largo
+    Vector3 posNuevo = new Vector3(
+        ultimoSegmento.transform.position.x,
+        ultimoSegmento.transform.position.y,
+        ultimoSegmento.transform.position.z + largo
+    );
+
+    GameObject nuevo = Instantiate(carreteraOriginal, posNuevo, ultimoSegmento.transform.rotation);
+    nuevo.name = "carretera_copia_" + System.DateTime.Now.Ticks;
+    
+    // BUSCAR REFERENCIAS DE VAYAS SI NO LAS TENEMOS
+    if (vayasDerReferencia == null || vayasIzqReferencia == null)
+    {
+        BuscarVayasOriginales();
+    }
+    
+    // CLONAR VAYAS DERECHA
+    if (vayasDerReferencia != null)
+    {
+        // Instanciar SIN padre primero para mantener rotación
+        GameObject vayasDerNuevo = Instantiate(vayasDerReferencia);
+        vayasDerNuevo.name = "vayas_der_clone";
+        
+        // MANTENER LA ROTACIÓN ORIGINAL (-90 en Y)
+        vayasDerNuevo.transform.rotation = vayasDerReferencia.transform.rotation;
+        
+        // APLICAR ESCALA CONFIGURADA
+        vayasDerNuevo.transform.localScale = escalaVayas;
+        
+        // Calcular posición: mantener la posición relativa en X, Y
+        // pero la Z debe ser la de la nueva carretera + offset
+        Vector3 posOriginal = vayasDerReferencia.transform.position;
+        vayasDerNuevo.transform.position = new Vector3(
+            posOriginal.x,  // Mantener misma X
+            posOriginal.y,  // Mantener misma Y
+            posNuevo.z + (posOriginal.z - carreteraOriginal.transform.position.z)  // Z relativa
         );
+        
+        // Hacerla hija de la nueva carretera después de posicionar
+        vayasDerNuevo.transform.parent = nuevo.transform;
+        
+        Debug.Log($"vayas_der clonada - Posición: {vayasDerNuevo.transform.position}, Rotación: {vayasDerNuevo.transform.rotation.eulerAngles}, Escala: {vayasDerNuevo.transform.localScale}");
+    }
+    else
+    {
+        Debug.LogWarning("No se encontró vayas_der de referencia");
+    }
+    
+    // CLONAR VAYAS IZQUIERDA
+    if (vayasIzqReferencia != null)
+    {
+        // Instanciar SIN padre primero para mantener rotación
+        GameObject vayasIzqNuevo = Instantiate(vayasIzqReferencia);
+        vayasIzqNuevo.name = "vayas_izq_clone";
+        
+        // MANTENER LA ROTACIÓN ORIGINAL (-90 en Y)
+        vayasIzqNuevo.transform.rotation = vayasIzqReferencia.transform.rotation;
+        
+        // APLICAR ESCALA CONFIGURADA
+        vayasIzqNuevo.transform.localScale = escalaVayas;
+        
+        // Calcular posición: mantener la posición relativa en X, Y
+        // pero la Z debe ser la de la nueva carretera + offset
+        Vector3 posOriginal = vayasIzqReferencia.transform.position;
+        vayasIzqNuevo.transform.position = new Vector3(
+            posOriginal.x,  // Mantener misma X
+            posOriginal.y,  // Mantener misma Y
+            posNuevo.z + (posOriginal.z - carreteraOriginal.transform.position.z)  // Z relativa
+        );
+        
+        // Hacerla hija de la nueva carretera después de posicionar
+        vayasIzqNuevo.transform.parent = nuevo.transform;
+        
+        Debug.Log($"vayas_izq clonada - Posición: {vayasIzqNuevo.transform.position}, Rotación: {vayasIzqNuevo.transform.rotation.eulerAngles}, Escala: {vayasIzqNuevo.transform.localScale}");
+    }
+    else
+    {
+        Debug.LogWarning("No se encontró vayas_izq de referencia");
+    }
+    
+    segmentosActivos.Enqueue(nuevo);
 
-        GameObject nuevo = Instantiate(carreteraOriginal, posNuevo, ultimoSegmento.transform.rotation);
-        nuevo.name = "carretera_copia_" + System.DateTime.Now.Ticks;
-        segmentosActivos.Enqueue(nuevo);
+    // ACTUALIZAR POSICIÓN DEL TRIGGER
+    if (triggerObject != null)
+    {
+        Bounds bNuevo;
+        TryGetBounds(nuevo, out bNuevo);
+        Vector3 newTriggerPos = triggerObject.transform.position;
+        newTriggerPos.z = nuevo.transform.position.z + (bNuevo.size.z / 2f);
+        triggerObject.transform.position = newTriggerPos;
+        Debug.Log("Trigger movido a posición Z: " + newTriggerPos.z);
+    }
 
-        // ACTUALIZAR POSICIÓN DEL TRIGGER
-        if (triggerObject != null)
+    // LIMPIAR SEGMENTOS ANTIGUOS - AHORA ELIMINA 2 SEGMENTOS
+    // Mantener al menos 3 segmentos (original + 2 copias)
+    while (segmentosActivos.Count > 3)
+    {
+        GameObject viejo = segmentosActivos.Dequeue();
+        if (viejo != carreteraOriginal)
         {
-            Bounds bNuevo;
-            TryGetBounds(nuevo, out bNuevo);
-            Vector3 newTriggerPos = triggerObject.transform.position;
-            newTriggerPos.z = nuevo.transform.position.z + (bNuevo.size.z / 2f);
-            triggerObject.transform.position = newTriggerPos;
-            Debug.Log("Trigger movido a posición Z: " + newTriggerPos.z);
+            Destroy(viejo);
+            Debug.Log("Segmento viejo destruido: " + viejo.name);
         }
-
-        // LIMPIAR SEGMENTOS ANTIGUOS
-        if (segmentosActivos.Count > maxSegmentosActivos)
+        
+        // Eliminar un segundo segmento si aún hay más de 3
+        if (segmentosActivos.Count > 3)
         {
-            GameObject viejo = segmentosActivos.Dequeue();
-            if (viejo != carreteraOriginal)
+            GameObject segundoViejo = segmentosActivos.Dequeue();
+            if (segundoViejo != carreteraOriginal)
             {
-                Destroy(viejo);
-                Debug.Log("Segmento viejo destruido: " + viejo.name);
+                Destroy(segundoViejo);
+                Debug.Log("Segundo segmento viejo destruido: " + segundoViejo.name);
             }
         }
+    }
 
-        puedeRegenerar = false;
-        Invoke(nameof(ReactivarGeneracion), cooldownGeneracion);
+    puedeRegenerar = false;
+    Invoke(nameof(ReactivarGeneracion), cooldownGeneracion);
 
-        Debug.Log("Nuevo segmento generado. Total activos: " + segmentosActivos.Count);
+    Debug.Log("Nuevo segmento generado. Segmentos activos: " + segmentosActivos.Count);
+}
+    void BuscarVayasOriginales()
+    {
+        // Buscar las vayas originales en la escena
+        GameObject[] todosObjetos = GameObject.FindObjectsOfType<GameObject>();
+        
+        foreach (GameObject obj in todosObjetos)
+        {
+            if (obj.name == "vayas_der" && !obj.name.Contains("_clone") && !obj.name.Contains("copia"))
+            {
+                vayasDerReferencia = obj;
+                Debug.Log("Encontrada vayas_der referencia en posición: " + obj.transform.position + ", rotación: " + obj.transform.rotation.eulerAngles + ", escala: " + obj.transform.localScale);
+            }
+            if (obj.name == "vayas_izq" && !obj.name.Contains("_clone") && !obj.name.Contains("copia"))
+            {
+                vayasIzqReferencia = obj;
+                Debug.Log("Encontrada vayas_izq referencia en posición: " + obj.transform.position + ", rotación: " + obj.transform.rotation.eulerAngles + ", escala: " + obj.transform.localScale);
+            }
+        }
+        
+        if (vayasDerReferencia == null)
+        {
+            Debug.LogError("No se encontró vayas_der de referencia!");
+        }
+        if (vayasIzqReferencia == null)
+        {
+            Debug.LogError("No se encontró vayas_izq de referencia!");
+        }
     }
 
     bool TryGetBounds(GameObject go, out Bounds bounds)
@@ -290,37 +409,37 @@ public class PlayerMovement : MonoBehaviour
         textoTemporizador.text = $"{min:00}:{seg:00}";
     }
 
-  void ActualizarPuntos()
-{
-    if (textoPuntos == null) return;
-
-    // SOLO sumar puntos si nos estamos moviendo (velocidad > 0.1)
-    if (currentForwardSpeed > 0.1f)
+    void ActualizarPuntos()
     {
-        if (Time.time - tiempoUltimoPunto >= intervaloPuntos)
+        if (textoPuntos == null) return;
+
+        // SOLO sumar puntos si nos estamos moviendo (velocidad > 0.1)
+        if (currentForwardSpeed > 0.1f)
         {
-            puntosTotales += puntosPorSegundo;
-
-            // Calcular coins (puntos multiplicados por el multiplicador)
-            coins = puntosTotales * multiplicadorCoins;
-
-            tiempoUltimoPunto = Time.time;
-            textoPuntos.text = "Puntos: " + puntosTotales;
-
-            // Actualizar texto de coins si está asignado
-            if (textoCoins != null)
+            if (Time.time - tiempoUltimoPunto >= intervaloPuntos)
             {
-                textoCoins.text = "Coins: " + coins;
+                puntosTotales += puntosPorSegundo;
+
+                // Calcular coins (puntos multiplicados por el multiplicador)
+                coins = puntosTotales * multiplicadorCoins;
+
+                tiempoUltimoPunto = Time.time;
+                textoPuntos.text = "Puntos: " + puntosTotales;
+
+                // Actualizar texto de coins si está asignado
+                if (textoCoins != null)
+                {
+                    textoCoins.text = "Coins: " + coins;
+                }
             }
         }
+        else
+        {
+            // Si estamos parados, resetear el contador para que no sume
+            // puntos inmediatamente al empezar a moverse
+            tiempoUltimoPunto = Time.time;
+        }
     }
-    else
-    {
-        // Si estamos parados, resetear el contador para que no sume
-        // puntos inmediatamente al empezar a moverse
-        tiempoUltimoPunto = Time.time;
-    }
-}
 
     // Añade este método para acceder a las coins desde otros scripts:
     public int ObtenerCoins()
