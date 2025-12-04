@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class CarSpawnerWithStages : MonoBehaviour
 {
@@ -10,17 +9,24 @@ public class CarSpawnerWithStages : MonoBehaviour
     [Header("Etapas de Dificultad")]
     public DifficultyStage[] difficultyStages = new DifficultyStage[]
     {
-        new DifficultyStage(0f, 3f),    // 0-30s: cada 3s
-        new DifficultyStage(30f, 2f),   // 30-60s: cada 2s  
-        new DifficultyStage(60f, 1.2f), // 60-90s: cada 1.2s
-        new DifficultyStage(90f, 0.6f), // 90-120s: cada 0.6s
-        new DifficultyStage(120f, 0.4f) // 120s+: cada 0.4s
+        new DifficultyStage(0f, 3f),
+        new DifficultyStage(30f, 2f),
+        new DifficultyStage(60f, 1.2f),
+        new DifficultyStage(90f, 0.6f),
+        new DifficultyStage(120f, 0.4f)
     };
+    
+    [Header("Control por Velocidad")]
+    public float velocidadMinimaParaSpawn = 5f;
+    public bool debugVelocidad = false;
     
     private float currentSpawnTime;
     private float currentSpawnInterval;
     private Transform playerCar;
     private float gameTime;
+    private float velocidadActual;
+    private Vector3 posicionAnterior;
+    private float tiempoUltimaMedicion;
 
     [System.Serializable]
     public class DifficultyStage
@@ -39,27 +45,71 @@ public class CarSpawnerWithStages : MonoBehaviour
     {
         currentSpawnInterval = difficultyStages[0].spawnInterval;
         currentSpawnTime = currentSpawnInterval;
-        FindPlayerCar();
+        BuscarJugador();
         gameTime = 0f;
+        tiempoUltimaMedicion = Time.time;
     }
 
     void Update()
     {
-        gameTime += Time.deltaTime;
-        UpdateDifficultyStage();
+        // 1. Actualizar velocidad del jugador
+        CalcularVelocidadJugador();
         
-        currentSpawnTime -= Time.deltaTime;
-        
-        if(currentSpawnTime <= 0f)
+        // 2. Solo sumar tiempo al juego si nos movemos
+        if (velocidadActual > velocidadMinimaParaSpawn)
         {
-            SpawnCar();
+            gameTime += Time.deltaTime;
+            UpdateDifficultyStage();
+            
+            // 3. Solo spawnear si nos movemos
+            currentSpawnTime -= Time.deltaTime;
+            
+            if (currentSpawnTime <= 0f)
+            {
+                SpawnCar();
+                currentSpawnTime = currentSpawnInterval;
+            }
+        }
+        else
+        {
+            // Si estamos parados, resetear el timer de spawn
+            // pero NO resetear el tiempo de juego
             currentSpawnTime = currentSpawnInterval;
         }
         
+        // 4. Seguir al jugador siempre
         FollowPlayer();
+        
+        // 5. Debug opcional
+        if (debugVelocidad && Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"Velocidad: {velocidadActual:F1} | Spawn: {(velocidadActual > velocidadMinimaParaSpawn ? "ACTIVO" : "PAUSADO")}");
+        }
     }
 
-    private void UpdateDifficultyStage()
+    void CalcularVelocidadJugador()
+    {
+        if (playerCar == null)
+        {
+            BuscarJugador();
+            return;
+        }
+        
+        // Calcular velocidad basada en cambio de posición
+        float tiempoActual = Time.time;
+        float deltaTiempo = tiempoActual - tiempoUltimaMedicion;
+        
+        if (deltaTiempo > 0.1f) // Medir cada 0.1 segundos
+        {
+            float distancia = Vector3.Distance(posicionAnterior, playerCar.position);
+            velocidadActual = distancia / deltaTiempo * 3.6f; // Convertir a km/h
+            
+            posicionAnterior = playerCar.position;
+            tiempoUltimaMedicion = tiempoActual;
+        }
+    }
+
+    void UpdateDifficultyStage()
     {
         for (int i = difficultyStages.Length - 1; i >= 0; i--)
         {
@@ -68,28 +118,55 @@ public class CarSpawnerWithStages : MonoBehaviour
                 if (currentSpawnInterval != difficultyStages[i].spawnInterval)
                 {
                     currentSpawnInterval = difficultyStages[i].spawnInterval;
-                    Debug.Log($"Nueva etapa: {difficultyStages[i].spawnInterval}s - Tiempo: {gameTime:F0}s");
                 }
                 break;
             }
         }
     }
 
-    private void FindPlayerCar()
+    void BuscarJugador()
     {
-        playerCar = GameObject.FindGameObjectWithTag("player").transform;
+        GameObject jugador = GameObject.FindGameObjectWithTag("player");
+        if (jugador != null)
+        {
+            playerCar = jugador.transform;
+            posicionAnterior = playerCar.position;
+        }
     }
 
-    private void FollowPlayer()
+    void FollowPlayer()
     {
         if (playerCar == null) return;
         transform.position = playerCar.position + playerCar.forward * 15f;
     }
 
-    private void SpawnCar()
+    void SpawnCar()
     {
         if (spawnPoints.Length == 0) return;
-        int randomIndex = Random.Range(0, spawnPoints.Length);
-        Instantiate(carPrefab, spawnPoints[randomIndex].position, Quaternion.identity);
+        
+        // Verificar una última vez que estamos moviéndonos
+        if (velocidadActual > velocidadMinimaParaSpawn)
+        {
+            int randomIndex = Random.Range(0, spawnPoints.Length);
+            Instantiate(carPrefab, spawnPoints[randomIndex].position, Quaternion.identity);
+            
+            if (debugVelocidad)
+            {
+                Debug.Log($"Coche spawnedo a {velocidadActual:F1} km/h");
+            }
+        }
+    }
+    
+    // Método para ver estado actual
+    public string GetEstado()
+    {
+        string estado = $"Velocidad: {velocidadActual:F1} km/h\n";
+        estado += $"Mínimo para spawn: {velocidadMinimaParaSpawn} km/h\n";
+        estado += $"Spawn activo: {velocidadActual > velocidadMinimaParaSpawn}\n";
+        estado += $"Tiempo juego: {gameTime:F1}s\n";
+        estado += $"Siguiente spawn en: {currentSpawnTime:F1}s\n";
+        estado += $"Intervalo: {currentSpawnInterval:F1}s";
+        
+        return estado;
     }
 }
