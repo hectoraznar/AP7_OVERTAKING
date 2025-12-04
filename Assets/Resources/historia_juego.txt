@@ -1,0 +1,92 @@
+﻿VELOCIDAD EXTREMA - AUTOPISTAS DE ESPAÑA 2024
+================================================================
+
+INVIERNO HISTÓRICO:
+Una tormenta polar sin precedentes ha cubierto España. 
+Temperaturas de -15°C, ventiscas de 90 km/h y capas de 
+nieve de hasta 1 metro paralizan el país.
+
+TU ROL:
+Eres Álex 'El Rayo' Navarro, conductor de 'Transportes Urgentes del Norte'.
+Con 10 años de experiencia en carreteras de montaña, eres uno de los pocos
+autorizados a circular durante la alerta roja.
+
+LA EMERGENCIA:
+El Hospital de Burgos necesita urgentemente:
+• 200 dosis de insulina
+• 50 unidades de sangre tipo O-
+• Equipos de diálisis
+• Medicamentos oncológicos
+
+TU VEHÍCULO:
+• Modelo: Mercedes Sprinter 4x4 L3H2
+• Motor: 3.0 V6 CDI (290 CV, 620 Nm)
+• Tracción: Integral permanente 4MATIC
+• Neumáticos: Invierno Nokian Hakkapeliitta 10
+• Extras: Bloqueo diferencial, calefacción carga, ESP Plus
+
+RUTA CRÍTICA (Madrid → Burgos):
+1. A-1: Salida Madrid (km 0) - Nieva intensamente
+2. Puerto de Somosierra (km 90) - Peligro máximo, -12°C
+3. Aranda de Duero (km 150) - Vientos cruzados 80 km/h
+4. Lerma (km 190) - Visibilidad 30 metros
+5. Burgos (km 237) - Objetivo final
+
+RIESGOS PRINCIPALES:
+[✓] Camiones articulados que patinan
+[✓] Turismos abandonados en calzada
+[✓] Placas de hielo 'negro' invisibles
+[✓] Ventiscas repentinas (white-out)
+[✓] Fallos mecánicos por frío extremo
+
+SISTEMA DE PUNTUACIÓN:
+• 1 PUNTO = 10 metros recorridos con seguridad
+• 100 Puntos = 1 kilómetro completado
+• COINS = Bonificación por técnica limpia
+    - Sin colisiones: x2 coins
+    - Velocidad constante: x1.5 coins
+    - Adelantamientos seguros: +50 coins
+
+OBJETIVOS POR ETAPA:
+▶ 0-5.000 puntos: Salir de Madrid (zona urbana)
+▶ 5.000-15.000: Ascender Somosierra (puerto)
+▶ 15.000-25.000: Cruce de Aranda (llanura)
+▶ 25.000-35.000: Aproximación a Burgos
+▶ 35.000+: Entrega exitosa
+
+CONSEJOS DE CONDUCCIÓN INVERNAL:
+1. VELOCIDAD: Mantén 80-90 km/h máximo
+2. DISTANCIA: 4 segundos con vehículo delantero
+3. FRENADA: Usa freno motor, evita frenazos
+4. CURVAS: Traza abierto → cerrado
+5. ADELANTAMIENTOS: Solo con visibilidad total
+
+CONTROLES DEL JUEGO:
+• W / ↑ : ACELERAR
+• S / ↓ : FRENAR
+• A / ← : IZQUIERDA
+• D / → : DERECHA
+• ESPACIO : FRENO DE MANO (emergencia)
+
+EQUIPAMIENTO ESPECIAL:
+▸ GPS con alertas de hielo
+▸ Termómetro exterior/interior
+▸ Cámara térmica frontal
+▸ Sistema de estabilidad ESP
+▸ Calefacción volante/asiento
+
+TIEMPO LÍMITE: 3 horas reales
+DISTANCIA TOTAL: 237 km
+TEMPERATURA: -8°C a -15°C
+VISIBILIDAD: 20-100 metros
+VIENTO: 60-90 km/h cruzado
+
+¿LO CONSEGUIRÁS?
+Cada kilómetro es una batalla contra los elementos.
+Cada decisión puede salvar vidas o provocar tragedia.
+No es una carrera, es una misión de vida o muerte.
+
+¡TU HABILIDAD ES LA ÚNICA ESPERANZA!
+================================================================
+© 2024 Velocidad Extrema - Simulador de Conducción Invernal
+================================================================

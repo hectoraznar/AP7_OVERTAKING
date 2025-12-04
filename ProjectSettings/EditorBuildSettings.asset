@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Autopista.unity
     guid: e17979e58e259cb408d25d28e3a6e8db
   - enabled: 1
+    path: Assets/Scenes/historia.unity
+    guid: 5b0f03d8eafca0744b2c178157ea3142
+  - enabled: 1
     path: Assets/Scenes/Derrota.unity
     guid: 8488009c47bef4f44ad18d6a63ab64e9
   m_configObjects:

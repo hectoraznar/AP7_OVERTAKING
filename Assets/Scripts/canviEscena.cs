@@ -7,7 +7,10 @@ public class canviEscena : MonoBehaviour
     {
         SceneManager.LoadScene("Autopista");
     }
-
+    public void anarHistoria()
+    {
+        SceneManager.LoadScene("historia");
+    }
     public void anarGarage()
     {
         SceneManager.LoadScene("Garaje");
