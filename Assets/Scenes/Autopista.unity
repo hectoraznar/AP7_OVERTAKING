@@ -652,6 +652,9 @@ MonoBehaviour:
   textoPuntos: {fileID: 955910445}
   puntosPorSegundo: 5
   intervaloPuntos: 1
+  multiplicadorCoins: 2
+  coins: 0
+  textoCoins: {fileID: 0}
 --- !u!1 &545145979
 GameObject:
   m_ObjectHideFlags: 0
@@ -1240,7 +1243,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Points
 
-    1000
+    0
 
 '
   m_isRightToLeft: 0
@@ -1487,6 +1490,8 @@ MonoBehaviour:
     spawnInterval: 0.6
   - startTime: 120
     spawnInterval: 0.4
+  velocidadMinimaParaSpawn: 5
+  debugVelocidad: 0
 --- !u!4 &1098732214
 Transform:
   m_ObjectHideFlags: 0

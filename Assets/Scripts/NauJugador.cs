@@ -290,10 +290,13 @@ public class PlayerMovement : MonoBehaviour
         textoTemporizador.text = $"{min:00}:{seg:00}";
     }
 
-    void ActualizarPuntos()
-    {
-        if (textoPuntos == null) return;
+  void ActualizarPuntos()
+{
+    if (textoPuntos == null) return;
 
+    // SOLO sumar puntos si nos estamos moviendo (velocidad > 0.1)
+    if (currentForwardSpeed > 0.1f)
+    {
         if (Time.time - tiempoUltimoPunto >= intervaloPuntos)
         {
             puntosTotales += puntosPorSegundo;
@@ -311,6 +314,13 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+    else
+    {
+        // Si estamos parados, resetear el contador para que no sume
+        // puntos inmediatamente al empezar a moverse
+        tiempoUltimoPunto = Time.time;
+    }
+}
 
     // Añade este método para acceder a las coins desde otros scripts:
     public int ObtenerCoins()
