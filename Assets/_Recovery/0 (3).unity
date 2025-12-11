@@ -301,7 +301,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 387678006}
         m_TargetAssemblyTypeName: CarCustomization, Assembly-CSharp
         m_MethodName: ChangeCarModel
         m_Mode: 3
@@ -491,6 +491,8 @@ GameObject:
   - component: {fileID: 387678002}
   - component: {fileID: 387678003}
   - component: {fileID: 387678004}
+  - component: {fileID: 387678005}
+  - component: {fileID: 387678006}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -617,12 +619,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GarageFuncionality
   cuboRenderer: {fileID: 0}
-  carModels:
-  - {fileID: 919132148970103205}
-  - {fileID: 1390982859842289765}
-  carRenderers:
-  - {fileID: 4539702727362300475}
-  - {fileID: 9035190476481580858}
+  carModels: []
+  carRenderers: []
   originalMaterial: {fileID: 0}
   colors:
   - {r: 0, g: 0, b: 0, a: 0}
@@ -633,17 +631,15 @@ MonoBehaviour:
   - {r: 0, g: 0, b: 0, a: 0}
   - {r: 0, g: 0, b: 0, a: 0}
   colorButtons:
-  - {fileID: 1968864242}
-  - {fileID: 1202832019}
-  - {fileID: 1502454000}
-  - {fileID: 683176844}
-  - {fileID: 1658458241}
-  - {fileID: 1832809367}
-  - {fileID: 1226250851}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   resetColorButton: {fileID: 0}
-  carModelButtons:
-  - {fileID: 1260523878}
-  - {fileID: 252507118}
+  carModelButtons: []
 --- !u!114 &387678004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -658,6 +654,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SaveChangeCarSkin
   mCarManager: {fileID: 1266298299}
   mGarageF: {fileID: 387678003}
+--- !u!114 &387678005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 387677997}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81ba9dc9c62283c4aa7c53bb27d68355, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarChanger
+--- !u!114 &387678006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 387677997}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 120d7df7e1d9ae844ba376f37626ca42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarCustomization
 --- !u!1001 &620328422
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1782,7 +1802,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 387678006}
         m_TargetAssemblyTypeName: CarCustomization, Assembly-CSharp
         m_MethodName: ChangeCarModel
         m_Mode: 3

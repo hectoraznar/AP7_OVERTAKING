@@ -8,51 +8,63 @@ public class GarageFuncionality : MonoBehaviour
     [Header("Referencias")]
     public Renderer cuboRenderer; // Arrastra el cubo aquí desde el Inspector
 
+       [Header("Referencias de Modelos de Coche")]
+    public GameObject[] carModels; // Array de modelos de coche disponibles
+    
+    [Header("Referencias de Renderizado")]
+    public Renderer[] carRenderers; // Arrastra los renderers de los coches aquí desde el Inspector
+    public Material originalMaterial; // Material original de los coches
     
     [Header("Array de Colores (Orden: 0-Red, 1-Blue, 2-Green, 3-Yellow, 4-Pink, 5-Grey, 6-Black)")]
-    public Color[] colores = new Color[7];
+    public Color[] colors = new Color[7];
     
-    [Header("Botones (Opcional - Asignar en orden)")]
-    public Button[] botones = new Button[7];
-    public Button botonReset;
+    [Header("Botones de UI (Opcional - Asignar en orden)")]
+    public Button[] colorButtons = new Button[7];
+    public Button resetColorButton;
+    public Button[] carModelButtons; // Botones para cambiar de modelo (ej: 0, 1, 2, etc.)
+    
+    private Color originalColor;
+    private Color currentColor;
+    private int currentCarIndex = 0;
+    private Material[] carMaterials; // Materiales instanciados para cada coche
 
-    [Header("Material del Cubo")]
-    public Material materialOriginalCubo;
-    private Color colorOriginal;
-    public MeshRenderer myMeshRender;
+    GameObject currentCarModel;
     void Start()
     {
-        // Inicializar array de colores con valores por defecto si está vacío
-        InicializarColores();
-       
-        
-        // Configurar material del cubo
-        if (cuboRenderer != null && materialOriginalCubo != null)
-        {
-            cuboRenderer.material = new Material(materialOriginalCubo);
-            colorOriginal = materialOriginalCubo.color;
-        }
-        
-        // Configurar botones automáticamente si están asignados
-        ConfigurarBotonesDesdeArray();
+        InitializeSystem();
     }
 
-    void InicializarColores()
+    void InitializeSystem()
     {
-        if (colores.Length < 7)
+        // Inicializar colores por defecto
+        InitializeColors();
+        
+        // Inicializar materiales de los coches
+        InitializeCarMaterials();
+        
+        // Activar el primer coche y desactivar los demás
+        SetActiveCar(0);
+        
+        // Configurar botones de UI
+        ConfigureColorButtons();
+        ConfigureCarModelButtons();
+    }
+
+    void InitializeColors()
+    {
+        if (colors.Length < 7)
         {
-            Array.Resize(ref colores, 7);
+            Array.Resize(ref colors, 7);
         }
 
         // Asignar colores por defecto si no están configurados
-        if (colores[0] == default(Color)) colores[0] = Color.red;
-        // Red
-        if (colores[1] == default(Color)) colores[1] = Color.blue;     // Blue
-        if (colores[2] == default(Color)) colores[2] = Color.green;    // Green
-        if (colores[3] == default(Color)) colores[3] = Color.yellow;   // Yellow
-        if (colores[4] == default(Color)) colores[4] = MagentaColor(); // Pink
-        if (colores[5] == default(Color)) colores[5] = Color.gray;     // Grey
-        if (colores[6] == default(Color)) colores[6] = Color.black;    // Black
+        if (colors[0] == default(Color)) colors[0] = Color.red;
+        if (colors[1] == default(Color)) colors[1] = Color.blue;
+        if (colors[2] == default(Color)) colors[2] = Color.green;
+        if (colors[3] == default(Color)) colors[3] = Color.yellow;
+        if (colors[4] == default(Color)) colors[4] = MagentaColor(); // Pink
+        if (colors[5] == default(Color)) colors[5] = Color.gray;
+        if (colors[6] == default(Color)) colors[6] = Color.black;
     }
 
     Color MagentaColor()
@@ -60,73 +72,167 @@ public class GarageFuncionality : MonoBehaviour
         return new Color(1f, 0f, 1f); // Color magenta para Pink
     }
 
-    void ConfigurarBotonesDesdeArray()
+    void InitializeCarMaterials()
+    {
+        if (originalMaterial != null && carRenderers != null && carRenderers.Length > 0)
+        {
+            carMaterials = new Material[carRenderers.Length];
+            originalColor = originalMaterial.color;
+            currentColor = originalColor;
+            
+            for (int i = 0; i < carRenderers.Length; i++)
+            {
+                if (carRenderers[i] != null)
+                {
+                    // Crear una nueva instancia del material para cada coche
+                    carMaterials[i] = new Material(originalMaterial);
+                    carRenderers[i].material = carMaterials[i];
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Faltan referencias de materiales o renderers en el Inspector");
+        }
+    }
+
+    void ConfigureColorButtons()
     {
         // Configurar botones de colores (0-6)
-        for (int i = 0; i < Mathf.Min(botones.Length, colores.Length); i++)
+        for (int i = 0; i < Mathf.Min(colorButtons.Length, colors.Length); i++)
         {
             int index = i; // Importante: capturar el índice actual
-            if (botones[i] != null)
+            if (colorButtons[i] != null)
             {
-                botones[i].onClick.AddListener(() => CambiarColorPorIndice(index));
+                colorButtons[i].onClick.RemoveAllListeners();
+                colorButtons[i].onClick.AddListener(() => ChangeColorByIndex(index));
             }
         }
 
         // Configurar botón reset
-        if (botonReset != null)
+        if (resetColorButton != null)
         {
-            botonReset.onClick.AddListener(ResetearColor);
+            resetColorButton.onClick.RemoveAllListeners();
+            resetColorButton.onClick.AddListener(ResetColor);
         }
     }
 
-    // Función principal para cambiar color por índice
-    public void CambiarColorPorIndice(int indiceColor)
+    void ConfigureCarModelButtons()
     {
-        if (indiceColor >= 0 && indiceColor < colores.Length)
+        if (carModelButtons != null)
         {
-            CambiarColor(colores[indiceColor]);
-            Debug.Log($"Color cambiado a: {ObtenerNombreColor(indiceColor)} (Índice: {indiceColor})");
+            for (int i = 0; i < carModelButtons.Length; i++)
+            {
+                int carIndex = i;
+                if (carModelButtons[i] != null)
+                {
+                    carModelButtons[i].onClick.RemoveAllListeners();
+                    carModelButtons[i].onClick.AddListener(() => ChangeCarModel(carIndex));
+                }
+            }
+        }
+    }
+
+    // ===== FUNCIONALIDAD DE CAMBIO DE MODELO =====
+    public void ChangeCarModel(int carIndex)
+    {    currentCarModel = carModels[carIndex];
+        if (carModels == null || carIndex < 0 || carIndex >= carModels.Length)
+        {
+            Debug.LogError($"Índice de coche inválido: {carIndex}");
+            return;
+        }
+
+        // Desactivar todos los coches
+        for (int i = 0; i < carModels.Length; i++)
+        {
+            if (carModels[i] != null)
+            {
+                carModels[i].SetActive(false);
+            }
+        }
+
+        // Activar el coche seleccionado
+        carModels[carIndex].SetActive(true);
+        currentCarIndex = carIndex;
+        
+        // Aplicar el color actual al nuevo coche activo
+        if (carRenderers != null && carIndex < carRenderers.Length && carRenderers[carIndex] != null)
+        {
+            carRenderers[carIndex].material.color = currentColor;
+        }
+        
+        Debug.Log($"Modelo cambiado a: Coches[{carIndex}]");
+    }
+
+    // ===== FUNCIONALIDAD DE CAMBIO DE COLOR =====
+    public void ChangeColorByIndex(int colorIndex)
+    {
+        if (colorIndex >= 0 && colorIndex < colors.Length)
+        {
+            currentColor = colors[colorIndex];
+            ApplyColorToCurrentCar(currentColor);
+            Debug.Log($"Color cambiado a: {GetColorName(colorIndex)} (Índice: {colorIndex})");
         }
         else
         {
-            Debug.LogError($"Índice de color inválido: {indiceColor}");
+            Debug.LogError($"Índice de color inválido: {colorIndex}");
         }
     }
 
-    // Función genérica para cambiar color
-    public void CambiarColor(Color nuevoColor)
+    void ApplyColorToCurrentCar(Color newColor)
     {
-        if (cuboRenderer != null)
+        if (carRenderers != null && currentCarIndex < carRenderers.Length && carRenderers[currentCarIndex] != null)
         {
-            cuboRenderer.material.color = nuevoColor;
+            carRenderers[currentCarIndex].material.color = newColor;
         }
         else
         {
-            Debug.LogError("No se ha asignado el cuboRenderer en el Inspector");
+            Debug.LogWarning("No se pudo aplicar el color al coche actual. Verifica las referencias.");
         }
     }
 
-    public void ResetearColor()
+    public void ResetColor()
     {
-        if (cuboRenderer != null)
-        {
-            cuboRenderer.material.color = colorOriginal;
-            Debug.Log("Color reseteado al original");
-        }
+        currentColor = originalColor;
+        ApplyColorToCurrentCar(originalColor);
+        Debug.Log("Color reseteado al original");
     }
 
-    string ObtenerNombreColor(int indice)
+    // ===== FUNCIONES AUXILIARES =====
+    string GetColorName(int index)
     {
-        string[] nombres = { "Red", "Blue", "Green", "Yellow", "Pink", "Grey", "Black" };
-        return indice >= 0 && indice < nombres.Length ? nombres[indice] : "Desconocido";
+        string[] names = { "Red", "Blue", "Green", "Yellow", "Pink", "Grey", "Black" };
+        return index >= 0 && index < names.Length ? names[index] : "Unknown";
     }
 
-    // Funciones específicas para asignar manualmente en el Inspector si se prefiere
-    public void CambiarColorRed() => CambiarColorPorIndice(0);
-    public void CambiarColorBlue() => CambiarColorPorIndice(1);
-    public void CambiarColorGreen() => CambiarColorPorIndice(2);
-    public void CambiarColorYellow() => CambiarColorPorIndice(3);
-    public void CambiarColorPink() => CambiarColorPorIndice(4);
-    public void CambiarColorGrey() => CambiarColorPorIndice(5);
-    public void CambiarColorBlack() => CambiarColorPorIndice(6);
+    public Color GetCurrentColor()
+    {
+        return currentColor;
+    }
+
+    public int GetCurrentCarIndex()
+    {
+        return currentCarIndex;
+    }
+
+    public GameObject GetCar()
+    {
+        return currentCarModel;
+    }
+
+    // ===== FUNCIONES ESPECÍFICAS PARA ASIGNAR MANUALMENTE EN EL INSPECTOR =====
+    public void SetActiveCar(int index)
+    {
+        
+        ChangeCarModel(index);
+    }
+    
+    public void ChangeColorRed() => ChangeColorByIndex(0);
+    public void ChangeColorBlue() => ChangeColorByIndex(1);
+    public void ChangeColorGreen() => ChangeColorByIndex(2);
+    public void ChangeColorYellow() => ChangeColorByIndex(3);
+    public void ChangeColorPink() => ChangeColorByIndex(4);
+    public void ChangeColorGrey() => ChangeColorByIndex(5);
+    public void ChangeColorBlack() => ChangeColorByIndex(6);
+
 }
