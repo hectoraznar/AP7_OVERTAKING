@@ -11,7 +11,7 @@ public class ObstacleCollision : MonoBehaviour
         if (other.CompareTag(playerTag))
         {
             Debug.Log("Colisión con jugador detectada");
-            GuardarPuntosDelJugador(other.gameObject);
+            GuardarDatosDelJugador(other.gameObject);
             SceneManager.LoadScene("Derrota");
         }
     }
@@ -21,12 +21,12 @@ public class ObstacleCollision : MonoBehaviour
         if (collision.gameObject.CompareTag(playerTag))
         {
             Debug.Log("Colisión con jugador detectada (OnCollisionEnter)");
-            GuardarPuntosDelJugador(collision.gameObject);
+            GuardarDatosDelJugador(collision.gameObject);
             SceneManager.LoadScene("Derrota");
         }
     }
     
-    private void GuardarPuntosDelJugador(GameObject jugador)
+    private void GuardarDatosDelJugador(GameObject jugador)
     {
         try
         {
@@ -34,7 +34,6 @@ public class ObstacleCollision : MonoBehaviour
             
             if (playerScript != null)
             {
-                // Intentar acceder a los campos con reflexión
                 System.Type tipo = playerScript.GetType();
                 
                 System.Reflection.FieldInfo campoPuntos = tipo.GetField(
@@ -53,32 +52,58 @@ public class ObstacleCollision : MonoBehaviour
                 {
                     int puntos = (int)campoPuntos.GetValue(playerScript);
                     float tiempo = (float)campoTiempo.GetValue(playerScript);
-                    int coins = puntos * 2;
                     
+                    // CALCULAR COINS: 100 coins por cada 5 segundos
+                    int coins = CalcularCoinsPorTiempo(tiempo);
+                    
+                    // Guardar datos de la partida
                     PlayerPrefs.SetInt("PUNTOS_FINALES", puntos);
                     PlayerPrefs.SetFloat("TIEMPO_FINAL", tiempo);
                     PlayerPrefs.SetInt("COINS_FINALES", coins);
                     PlayerPrefs.Save();
                     
-                    Debug.Log("Datos guardados: " + puntos + " puntos, " + coins + " coins");
+                    Debug.Log($"Datos guardados: {puntos} puntos, {tiempo:F1} segundos, {coins} coins");
+                    Debug.Log($"Cálculo: {Mathf.Floor(tiempo / 5f)} intervalos de 5s × 100 coins = {coins} coins");
                 }
                 else
                 {
-                    // Valores por defecto si no encuentra los campos
-                    PlayerPrefs.SetInt("PUNTOS_FINALES", 150);
-                    PlayerPrefs.SetFloat("TIEMPO_FINAL", Time.timeSinceLevelLoad);
-                    PlayerPrefs.SetInt("COINS_FINALES", 300);
-                    PlayerPrefs.Save();
+                    GuardarValoresPorDefecto();
                 }
             }
         }
         catch
         {
-            // Si hay error, guardar valores básicos
-            PlayerPrefs.SetInt("PUNTOS_FINALES", 100);
-            PlayerPrefs.SetFloat("TIEMPO_FINAL", Time.timeSinceLevelLoad);
-            PlayerPrefs.SetInt("COINS_FINALES", 200);
-            PlayerPrefs.Save();
+            GuardarValoresPorDefecto();
         }
+    }
+    
+    private int CalcularCoinsPorTiempo(float tiempoSegundos)
+    {
+        // Calcular cuántos intervalos completos de 5 segundos hubo
+        int intervalos5Segundos = Mathf.FloorToInt(tiempoSegundos / 5f);
+        
+        // 100 coins por cada intervalo de 5 segundos
+        int coins = intervalos5Segundos * 100;
+        
+        // Bonus mínimo: si jugó menos de 5 segundos, gana 20 coins por segundo
+        if (intervalos5Segundos == 0 && tiempoSegundos > 0)
+        {
+            coins = Mathf.FloorToInt(tiempoSegundos) * 20;
+        }
+        
+        return coins;
+    }
+    
+    private void GuardarValoresPorDefecto()
+    {
+        float tiempo = Time.timeSinceLevelLoad;
+        int coins = CalcularCoinsPorTiempo(tiempo);
+        
+        PlayerPrefs.SetInt("PUNTOS_FINALES", 150);
+        PlayerPrefs.SetFloat("TIEMPO_FINAL", tiempo);
+        PlayerPrefs.SetInt("COINS_FINALES", coins);
+        PlayerPrefs.Save();
+        
+        Debug.Log($"Valores por defecto: 150 puntos, {tiempo:F1} segundos, {coins} coins");
     }
 }
