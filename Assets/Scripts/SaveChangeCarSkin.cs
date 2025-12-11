@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class SaveChangeCarSkin : MonoBehaviour
 {
-    private Mesh carModel;
+    private GameObject carModel;
     private Color carColor; 
      [Header("ScriptCarManager")]
      public CarManager mCarManager; 
 
     //public CarChanger [] mChanger; 
-     public CarChanger mChanger;
+     
      [Header("ScriptGarageFunc...")]
      public GarageFuncionality mGarageF;
 
@@ -19,13 +19,23 @@ public class SaveChangeCarSkin : MonoBehaviour
     }
     public void getColorAndCarModel()
     {
-        carColor = mGarageF.getCurrentColor();   
-        mCarManager.SetColor(carColor);
-        carModel = mChanger.getCarMesh(); 
-        mCarManager.SetModelo(carModel);
+        carColor = mGarageF.GetCurrentColor();
+        Debug.Log(carColor.ToString());   
+        //mCarManager.SetColor(carColor);
+        carModel = mGarageF.GetCar();
+        Debug.Log(carModel.ToString()); 
+        //mCarManager.SetModelo(carModel);
 
     }
    
+   public GameObject GetModel()
+    {
+        return carModel;
+    }
+    public Color GetColor()
+    {
+        return carColor;
+    }
 
   /*  public void  getMeshByID( int index)
     {

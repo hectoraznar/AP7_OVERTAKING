@@ -51,7 +51,7 @@ public class CarChanger : MonoBehaviour
         }
         
         // Asignar los eventos de los botones
-        if (btnCar1 != null)
+       /* if (btnCar1 != null)
         {
             btnCar1.onClick.AddListener(RestoreOriginalShape);
         }
@@ -59,10 +59,10 @@ public class CarChanger : MonoBehaviour
         if (btnCar2 != null)
         {
             btnCar2.onClick.AddListener(ChangeToSphere);
-        }
+        }*/
     }
     
-    void ChangeToSphere()
+    public void ChangeToSphere()
     {
         if (carObject == null || carMeshes == null || carMeshes.Length < 2)
         {
@@ -74,7 +74,7 @@ public class CarChanger : MonoBehaviour
         ApplyMesh(carMeshes[1]);
     }
     
-    void RestoreOriginalShape()
+   public void RestoreOriginalShape()
     {
         if (carObject == null)
         {

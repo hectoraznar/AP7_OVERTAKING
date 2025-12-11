@@ -6,7 +6,7 @@ public class CarManager : MonoBehaviour
     // Variables privadas
     public Color _colorCoche = Color.red;
     private int _indiceModelo = 0;
-    public Mesh carMesh;
+    public GameObject carMesh;
     
     void Awake()
     {
@@ -29,7 +29,7 @@ public class CarManager : MonoBehaviour
         Debug.Log($"Color guardado: {nuevoColor}");
     }
     
-    public void SetModelo(Mesh indiceModelo)
+    public void SetModelo(GameObject indiceModelo)
     {
         /*if (indiceModelo >= 0 && indiceModelo <= 1)
         {
@@ -51,7 +51,7 @@ public class CarManager : MonoBehaviour
         return _colorCoche;
     }
     
-    public Mesh GetModelo()
+    public GameObject GetModelo()
     {
         //return _indiceModelo;
         return carMesh;

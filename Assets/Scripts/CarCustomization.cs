@@ -1,26 +1,27 @@
 using UnityEngine;
-
+using UnityEngine.UI;
 public class CarCustomization : MonoBehaviour
 {
-   /*public Mesh[] cars;
-   public Mesh currentMesh;
-   public CarChanger mCarChanger; 
-    // acceder a los componentes hijos (base); 
+    public GameObject [] carsGM;
     void Start()
     {
-        currentMesh = cars[0];
+  
+        carsGM[0].SetActive(true);
+        carsGM[1].SetActive(false);
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public void changeCarDefaultMesh()
+
+   public void ChangeCarModel(int carIndex)
     {
-       currentMesh = cars[0];
-       mCarChanger = mCarChanger.gameObject.GetComponent<CarChanger>();
-       mCarChanger.setCarModel(currentMesh);
+      if (carIndex == 1)
+        {
+            carsGM[0].SetActive(false);
+            carsGM[carIndex].SetActive(true);
+        }
+      if (carIndex == 0)
+        {
+            carsGM[1].SetActive(false);
+            carsGM[carIndex].SetActive(true);
+        }
+        
     }
-    public void changeCarMesh()
-    {
-       currentMesh = cars[1]; 
-       mCarChanger = mCarChanger.gameObject.GetComponent<CarChanger>();
-       mCarChanger.setCarModel(currentMesh);
-    }*/
 }
