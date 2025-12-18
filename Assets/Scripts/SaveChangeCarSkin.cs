@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 public class SaveChangeCarSkin : MonoBehaviour
@@ -12,7 +13,8 @@ public class SaveChangeCarSkin : MonoBehaviour
      [Header("ScriptGarageFunc...")]
      public GarageFuncionality mGarageF;
      public Mesh mCarMesh;
-
+     List <Mesh> bugattiMesh = new List<Mesh>();
+    
     void Start()
     {
        /* mChanger[0] = GameObject.Find("btnCar1").GetComponent<CarChanger>();
@@ -26,9 +28,13 @@ public class SaveChangeCarSkin : MonoBehaviour
         carModel = mGarageF.GetCar();
         Debug.Log(carModel.ToString()); 
         mCarMesh = carModel.GetComponentInChildren<MeshFilter>().mesh;
-     
+
         //mCarManager.SetColor(carColor);
         //mCarManager.SetModelo(carModel);
+       /* if (mCarMesh.name == "Coche3")
+        {
+            
+        }*/
         carData.SetCarSkin( carModel, carColor, mCarMesh);
         //mCarManager.SetModelo(carModel);
         SaveAndChangeScene();

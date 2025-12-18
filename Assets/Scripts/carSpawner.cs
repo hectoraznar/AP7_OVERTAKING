@@ -4,7 +4,7 @@ public class CarSpawnerWithStages : MonoBehaviour
 {
     [Header("Configuración de Spawn")]
     public Transform[] spawnPoints;
-    public GameObject carPrefab;
+    public GameObject [] carPrefabs;
     
     [Header("Etapas de Dificultad")]
     public DifficultyStage[] difficultyStages = new DifficultyStage[]
@@ -148,7 +148,13 @@ public class CarSpawnerWithStages : MonoBehaviour
         if (velocidadActual > velocidadMinimaParaSpawn)
         {
             int randomIndex = Random.Range(0, spawnPoints.Length);
-            Instantiate(carPrefab, spawnPoints[randomIndex].position, Quaternion.identity);
+            int randomSpawnIndex = Random.Range(0, spawnPoints.Length);
+            
+           
+             int randomCarIndex = Random.Range(0, carPrefabs.Length);
+            
+            // Instanciar el coche aleatorio
+            Instantiate(carPrefabs[0], spawnPoints[randomSpawnIndex].position, Quaternion.identity);
             
             if (debugVelocidad)
             {

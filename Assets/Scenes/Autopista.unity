@@ -1189,6 +1189,8 @@ MonoBehaviour:
   coins: 0
   textoCoins: {fileID: 0}
   escalaVayas: {x: 1, y: 1, z: 1}
+  carModel: {fileID: 0}
+  carColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &545145979
 GameObject:
   m_ObjectHideFlags: 0
@@ -2709,7 +2711,9 @@ MonoBehaviour:
   - {fileID: 1182398666}
   - {fileID: 759676449}
   - {fileID: 545145980}
-  carPrefab: {fileID: 4682355279954694459, guid: 3736c786b302c8647b8c89f859907b71, type: 3}
+  carPrefabs:
+  - {fileID: 7470684605379364477, guid: 9e403e4bbf20f4948803edc64457ab58, type: 3}
+  - {fileID: 6731114225599482275, guid: e85e1e57d7f311e4b8374ef7e323a5ef, type: 3}
   difficultyStages:
   - startTime: 0
     spawnInterval: 3
