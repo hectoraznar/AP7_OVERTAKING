@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class SaveChangeCarSkin : MonoBehaviour
 {
     private GameObject carModel;
@@ -11,6 +11,7 @@ public class SaveChangeCarSkin : MonoBehaviour
      
      [Header("ScriptGarageFunc...")]
      public GarageFuncionality mGarageF;
+     public Mesh mCarMesh;
 
     void Start()
     {
@@ -24,8 +25,13 @@ public class SaveChangeCarSkin : MonoBehaviour
         //mCarManager.SetColor(carColor);
         carModel = mGarageF.GetCar();
         Debug.Log(carModel.ToString()); 
+        mCarMesh = carModel.GetComponentInChildren<MeshFilter>().mesh;
+     
+        //mCarManager.SetColor(carColor);
         //mCarManager.SetModelo(carModel);
-
+        carData.SetCarSkin( carModel, carColor, mCarMesh);
+        //mCarManager.SetModelo(carModel);
+        SaveAndChangeScene();
     }
    
    public GameObject GetModel()
@@ -37,6 +43,10 @@ public class SaveChangeCarSkin : MonoBehaviour
         return carColor;
     }
 
+    public void SaveAndChangeScene()
+    {
+        SceneManager.LoadScene("Autopista");
+    }
   /*  public void  getMeshByID( int index)
     {
          if(index == 1)

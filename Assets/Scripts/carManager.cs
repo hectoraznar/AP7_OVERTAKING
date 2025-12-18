@@ -51,7 +51,7 @@ public class CarManager : MonoBehaviour
         return _colorCoche;
     }
     
-    public GameObject GetModelo()
+    public GameObject GetModel()
     {
         //return _indiceModelo;
         return carMesh;

@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.InputSystem;
 using System.Linq;
 
+
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movimiento")]
@@ -61,10 +62,36 @@ public class PlayerMovement : MonoBehaviour
     private InputAction movimientoAction;
     private InputAction acelerarAction;
     private InputAction frenarAction;
-
+    
+    public GameObject carModel;
+    public  Color carColor; 
     void Start()
     {
         ConfigurarInput();
+
+    
+        Transform cubeTransform = transform.Find("coche2/Cube");
+        if (cubeTransform != null)
+        {
+            Debug.Log("Encontrado el cubo del coche para aplicar skin");
+    // Cambiar la malla
+            MeshFilter cubeMeshFilter = cubeTransform.GetComponent<MeshFilter>();
+            if (cubeMeshFilter != null){
+               if(carData.GetCarMesh().name != "Cube Instance")
+                {
+                    cubeMeshFilter.mesh = carData.GetCarMesh();    
+                }
+                
+            }
+    
+             // Cambiar el color
+            Renderer cubeRenderer = cubeTransform.GetComponent<Renderer>();
+            if (cubeRenderer != null){
+                cubeRenderer.material.color = carData.carColor;
+            }
+        }
+        
+        
 
         // Guardar la altura inicial para mantenerla fija
         alturaFija = transform.position.y;
